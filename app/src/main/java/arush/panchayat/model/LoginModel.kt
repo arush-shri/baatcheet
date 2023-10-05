@@ -2,10 +2,8 @@ package arush.panchayat.model
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.widget.EditText
 import android.widget.Toast
-import arush.panchayat.MainActivity
 import arush.panchayat.presenter.LoginPresenter
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.FirebaseException

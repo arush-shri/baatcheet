@@ -1,6 +1,5 @@
 package arush.panchayat.presenter
 
-import android.content.Context
 import arush.panchayat.model.LoginModel
 import arush.panchayat.view.LoginActivity
 
