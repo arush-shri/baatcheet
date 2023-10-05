@@ -10,6 +10,8 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class DatabaseHandler {
     private val database : DatabaseReference = FirebaseDatabase.getInstance().getReference("baatcheet")
@@ -33,7 +35,7 @@ class DatabaseHandler {
         }
     }
     fun sendMessage(msg: String, sender: String, receiver: String){
-        val timeStamp = ""
+        val timeStamp = getCombinedTimestamp()
         var message: JSONArray? = null
         val msgObject = JSONObject()
         database.child(receiver).child("messageList").child(sender).child("messages")
@@ -54,5 +56,10 @@ class DatabaseHandler {
         message!!.put(msgObject)
 
         database.child(receiver).child("messageList").child(sender).child("messages").setValue(message)
+    }
+    private fun getCombinedTimestamp(): String {
+        val currentDateTime = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("ddMMyyyyHHmmss")
+        return currentDateTime.format(formatter)
     }
 }
