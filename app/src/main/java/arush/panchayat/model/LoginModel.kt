@@ -71,9 +71,9 @@ class LoginModel (private val presenter: LoginPresenter, private val username: S
         auth.signInWithCredential(credential)
             .addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
                 if (task.isSuccessful) {
+                    DatabaseHandler().login(username, phoneNumber, imageUri)
                     Toast.makeText(loginContext,"Let's start baatcheet",Toast.LENGTH_SHORT).show()
                     presenter.verified()
-                    DatabaseHandler().login(username, phoneNumber, imageUri)
                 } else {
                     Toast.makeText(loginContext, task.exception!!.message, Toast.LENGTH_LONG)
                         .show()
