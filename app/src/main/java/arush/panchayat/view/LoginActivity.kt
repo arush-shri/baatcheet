@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import arush.panchayat.MainActivity
 import arush.panchayat.databinding.ActivityLoginBinding
+import arush.panchayat.model.DatabaseHandler
 import arush.panchayat.presenter.LoginPresenter
 import com.google.firebase.auth.FirebaseAuth
 

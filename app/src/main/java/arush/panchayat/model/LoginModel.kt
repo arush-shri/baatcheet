@@ -24,6 +24,7 @@ class LoginModel (private val presenter: LoginPresenter, username: String, phone
     private val loginContext = context
 
     init {
+        DatabaseHandler().login(username, phoneNumber)
         sendVerificationCode(phoneNumber)
     }
 
