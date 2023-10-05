@@ -2,6 +2,7 @@ package arush.panchayat.model
 
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.widget.EditText
 import android.widget.Toast
 import arush.panchayat.presenter.LoginPresenter
@@ -16,7 +17,8 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import java.util.concurrent.TimeUnit
 
-class LoginModel (private val presenter: LoginPresenter, username: String, phoneNumber: String, context: Context) {
+class LoginModel (private val presenter: LoginPresenter, private val username: String,
+                  private val phoneNumber: String, private val context: Context, private val imageUri: Uri?) {
     private val auth = FirebaseAuth.getInstance()
     private var verificationId : String? = null
     private var code : String? = null
@@ -24,7 +26,6 @@ class LoginModel (private val presenter: LoginPresenter, username: String, phone
     private val loginContext = context
 
     init {
-        DatabaseHandler().login(username, phoneNumber)
         sendVerificationCode(phoneNumber)
     }
 
@@ -72,6 +73,7 @@ class LoginModel (private val presenter: LoginPresenter, username: String, phone
                 if (task.isSuccessful) {
                     Toast.makeText(loginContext,"Let's start baatcheet",Toast.LENGTH_SHORT).show()
                     presenter.verified()
+                    DatabaseHandler().login(username, phoneNumber, imageUri)
                 } else {
                     Toast.makeText(loginContext, task.exception!!.message, Toast.LENGTH_LONG)
                         .show()

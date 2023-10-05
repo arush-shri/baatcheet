@@ -1,13 +1,14 @@
 package arush.panchayat.view
 
 import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.view.isVisible
 import arush.panchayat.MainActivity
 import arush.panchayat.databinding.ActivityLoginBinding
-import arush.panchayat.model.DatabaseHandler
 import arush.panchayat.presenter.LoginPresenter
 import com.google.firebase.auth.FirebaseAuth
 
@@ -15,6 +16,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var loginBinding: ActivityLoginBinding
     private val auth = FirebaseAuth.getInstance()
     private var checker = true
+    private val reqCode = 1000
+    var imageUri : Uri? = null
 
     override fun onStart() {
         super.onStart()
@@ -33,7 +36,6 @@ class LoginActivity : AppCompatActivity() {
 
         loginBinding.getOTPButton.setOnClickListener {
             if (checker){
-                checker = false
                 if (loginBinding.nameInput.text.isNullOrEmpty() || loginBinding.numberInput.text.isNullOrEmpty()) {
                     Toast.makeText(this@LoginActivity, "Name or number missing", Toast.LENGTH_SHORT).show()
                 }
@@ -42,11 +44,13 @@ class LoginActivity : AppCompatActivity() {
                 }
                 else {
                     loginPresenter.login(loginBinding.nameInput.text.toString(),
-                        "+91${loginBinding.numberInput.text.toString()}")
+                        "+91${loginBinding.numberInput.text.toString()}", imageUri)
                     loginBinding.otpLayout.isVisible = true
                     loginBinding.getOTPButton.text = "VERIFY"
                     loginBinding.textInputLayout.isEnabled = false
                     loginBinding.textInputLayout2.isEnabled = false
+                    loginBinding.profileAddButton.isEnabled = false
+                    checker = false
                 }
             }
             else{
@@ -55,6 +59,23 @@ class LoginActivity : AppCompatActivity() {
                 }
                 else{
                     loginPresenter.verifier(loginBinding.otpInput.text.toString())
+                }
+            }
+        }
+        loginBinding.profileAddButton.setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            startActivityForResult(intent, reqCode)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(resultCode== RESULT_OK){
+            if(requestCode == reqCode){
+                if (data != null) {
+                    imageUri = data.data!!
+                    loginBinding.profileImage.setImageURI(imageUri)
                 }
             }
         }
