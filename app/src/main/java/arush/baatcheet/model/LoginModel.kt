@@ -1,11 +1,11 @@
-package arush.panchayat.model
+package arush.baatcheet.model
 
 import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.widget.EditText
 import android.widget.Toast
-import arush.panchayat.presenter.LoginPresenter
+import arush.baatcheet.presenter.LoginPresenter
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.AuthResult

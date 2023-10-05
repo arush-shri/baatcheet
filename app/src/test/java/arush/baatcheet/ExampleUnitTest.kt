@@ -1,4 +1,4 @@
-package arush.panchayat
+package arush.baatcheet
 
 import org.junit.Test
 

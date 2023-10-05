@@ -1,4 +1,4 @@
-package arush.panchayat.ui.theme
+package arush.baatcheet.ui.theme
 
 import android.app.Activity
 import android.os.Build

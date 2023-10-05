@@ -1,8 +1,8 @@
-package arush.panchayat.presenter
+package arush.baatcheet.presenter
 
 import android.net.Uri
-import arush.panchayat.model.LoginModel
-import arush.panchayat.view.LoginActivity
+import arush.baatcheet.model.LoginModel
+import arush.baatcheet.view.LoginActivity
 
 class LoginPresenter(context: LoginActivity) {
     private lateinit var loginModel: LoginModel

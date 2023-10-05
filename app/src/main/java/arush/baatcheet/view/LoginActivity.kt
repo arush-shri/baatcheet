@@ -1,4 +1,4 @@
-package arush.panchayat.view
+package arush.baatcheet.view
 
 import android.content.Intent
 import android.net.Uri
@@ -7,9 +7,9 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.view.isVisible
-import arush.panchayat.MainActivity
-import arush.panchayat.databinding.ActivityLoginBinding
-import arush.panchayat.presenter.LoginPresenter
+import arush.baatcheet.MainActivity
+import arush.baatcheet.databinding.ActivityLoginBinding
+import arush.baatcheet.presenter.LoginPresenter
 import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
@@ -32,6 +32,7 @@ class LoginActivity : AppCompatActivity() {
         loginBinding = ActivityLoginBinding.inflate(layoutInflater)
         val view = loginBinding.root
         setContentView(view)
+
         val loginPresenter = LoginPresenter(this)
 
         loginBinding.getOTPButton.setOnClickListener {

@@ -1,4 +1,4 @@
-package arush.panchayat.model
+package arush.baatcheet.model
 
 import android.net.Uri
 import com.google.firebase.database.DatabaseReference
@@ -25,5 +25,8 @@ class DatabaseHandler {
                         }
                 }
         }
+    }
+    fun sendMessage(message: String, receiver: String){
+
     }
 }

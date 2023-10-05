@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Panchayat"
+        android:theme="@style/Theme.Baatcheet"
         tools:targetApi="31">
         <activity
             android:name=".view.LoginActivity"
@@ -25,7 +25,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Panchayat">
+            android:theme="@style/Theme.Baatcheet">
 
         </activity>
     </application>

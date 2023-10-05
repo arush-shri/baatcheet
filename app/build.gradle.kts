@@ -5,14 +5,14 @@ plugins {
 }
 
 android {
-    namespace = "arush.panchayat"
+    namespace = "arush.baatcheet"
     compileSdk = 34
 
     buildFeatures{
         viewBinding = true
     }
     defaultConfig {
-        applicationId = "arush.panchayat"
+        applicationId = "arush.baatcheet"
         minSdk = 26
         targetSdk = 33
         versionCode = 1
