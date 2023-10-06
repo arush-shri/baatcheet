@@ -6,6 +6,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import org.json.JSONArray
@@ -36,26 +37,15 @@ class DatabaseHandler {
     }
     fun sendMessage(msg: String, sender: String, receiver: String){
         val timeStamp = getCombinedTimestamp()
-        var message: JSONArray? = null
-        val msgObject = JSONObject()
+        var message = ArrayList<HashMap<String, String>>()
         database.child(receiver).child("messageList").child(sender).child("messages")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    message = dataSnapshot.getValue(JSONArray::class.java)
-                } else {
-                    message = JSONArray()
+            .get().addOnSuccessListener {
+                if(it.value != null){
+                    message = it.value as ArrayList<HashMap<String, String>>
                 }
+                message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
+                database.child(receiver).child("messageList").child(sender).child("messages").setValue(message)
             }
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.d("DBError", databaseError.message)
-            }
-        })
-
-        msgObject.put(timeStamp, msg)
-        message!!.put(msgObject)
-
-        database.child(receiver).child("messageList").child(sender).child("messages").setValue(message)
     }
     private fun getCombinedTimestamp(): String {
         val currentDateTime = LocalDateTime.now()
