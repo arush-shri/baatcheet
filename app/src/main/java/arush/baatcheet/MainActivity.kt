@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Greeting() {
     Text(text = "Hello")
-    Button(onClick = {DatabaseHandler().sendMessage("i am in firebase","123456789", "+919669620888")},
+    Button(onClick = {DatabaseHandler().recvMessage()},
         modifier = Modifier.fillMaxHeight(0.1f).fillMaxWidth(0.5f)) {
         Text(text = "CLICK")
     }

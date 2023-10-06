@@ -2,6 +2,7 @@ package arush.baatcheet.model
 
 import android.net.Uri
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -15,10 +16,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class DatabaseHandler {
+
     private val database : DatabaseReference = FirebaseDatabase.getInstance().getReference("baatcheet")
     private val storage : FirebaseStorage = FirebaseStorage.getInstance()
-    fun login(username: String, phoneNumber: String, imageUri: Uri?)
-    {
+    private val userNumber = FirebaseAuth.getInstance().currentUser?.phoneNumber.toString()
+
+    fun login(username: String, phoneNumber: String, imageUri: Uri?) {
         if (imageUri != null) {
             val imageRef = storage.getReference("DP").child(phoneNumber + "DP")
             imageRef.putFile(imageUri)
@@ -35,21 +38,45 @@ class DatabaseHandler {
                 }
         }
     }
-    fun sendMessage(msg: String, sender: String, receiver: String){
+
+    fun sendMessage(msg: String, toWhom: String){
         val timeStamp = getCombinedTimestamp()
         var message = ArrayList<HashMap<String, String>>()
-        database.child(receiver).child("messageList").child(sender).child("messages")
+        database.child(toWhom).child("messageList").child(userNumber).child("messages")
             .get().addOnSuccessListener {
                 if(it.value != null){
                     message = it.value as ArrayList<HashMap<String, String>>
                 }
                 message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
-                database.child(receiver).child("messageList").child(sender).child("messages").setValue(message)
+                database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
             }
     }
+
     private fun getCombinedTimestamp(): String {
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("ddMMyyyyHHmmss")
         return currentDateTime.format(formatter)
+    }
+
+    fun recvMessage() : ArrayList<HashMap<String, String>>{
+        var messages = ArrayList<HashMap<String, String>>()
+        database.child(userNumber).child("messageList").child(userNumber).child("messages")
+            .get().addOnSuccessListener {
+                if(it.value != null){
+                    messages = it.value as ArrayList<HashMap<String, String>>
+                }
+            }
+        return messages
+    }
+
+    private fun uploadData(imageUri: Uri, toWhom: String){
+        val imageRef = storage.getReference("SentFile").child(userNumber)
+        imageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    val imageUrl = uri.toString()
+                    sendMessage(imageUrl, toWhom)
+                }
+            }
     }
 }
