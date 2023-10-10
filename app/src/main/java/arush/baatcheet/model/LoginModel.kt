@@ -23,7 +23,6 @@ class LoginModel (private val presenter: LoginPresenter, private val username: S
     private var verificationId : String? = null
     private var code : String? = null
     private  var edtOTP: EditText? = null
-    private val loginContext = context
 
     init {
         sendVerificationCode(phoneNumber)
@@ -38,7 +37,7 @@ class LoginModel (private val presenter: LoginPresenter, private val username: S
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(phoneNum)
             .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(loginContext as Activity)
+            .setActivity(context as Activity)
             .setCallbacks(
                 object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                     override fun onCodeSent(s: String, forceResendingToken: PhoneAuthProvider.ForceResendingToken) {
@@ -54,7 +53,7 @@ class LoginModel (private val presenter: LoginPresenter, private val username: S
                         }
                     }
                     override fun onVerificationFailed(e: FirebaseException) {
-                        Toast.makeText(loginContext, e.message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
                     }
                 }
             )
@@ -71,11 +70,11 @@ class LoginModel (private val presenter: LoginPresenter, private val username: S
         auth.signInWithCredential(credential)
             .addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
                 if (task.isSuccessful) {
-                    DatabaseHandler().login(username, phoneNumber, imageUri)
-                    Toast.makeText(loginContext,"Let's start baatcheet",Toast.LENGTH_SHORT).show()
+                    DatabaseHandler().login(username, phoneNumber, imageUri, FileHandler(context).keyGenCaller())
+                    Toast.makeText(context,"Let's start baatcheet",Toast.LENGTH_SHORT).show()
                     presenter.verified()
                 } else {
-                    Toast.makeText(loginContext, task.exception!!.message, Toast.LENGTH_LONG)
+                    Toast.makeText(context, task.exception!!.message, Toast.LENGTH_LONG)
                         .show()
                 }
             })

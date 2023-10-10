@@ -12,8 +12,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import arush.baatcheet.model.DatabaseHandler
 import arush.baatcheet.ui.theme.PanchayatTheme
 
 class MainActivity : ComponentActivity() {
@@ -35,8 +35,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting() {
+    val context = LocalContext.current
     Text(text = "Hello")
-    Button(onClick = {DatabaseHandler().recvMessage()},
+    Button(onClick = {},
         modifier = Modifier.fillMaxHeight(0.1f).fillMaxWidth(0.5f)) {
         Text(text = "CLICK")
     }

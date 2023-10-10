@@ -1,17 +1,10 @@
 package arush.baatcheet.model
 
 import android.net.Uri
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.GenericTypeIndicator
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
-import org.json.JSONArray
-import org.json.JSONObject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -21,18 +14,18 @@ class DatabaseHandler {
     private val storage : FirebaseStorage = FirebaseStorage.getInstance()
     private val userNumber = FirebaseAuth.getInstance().currentUser?.phoneNumber.toString()
 
-    fun login(username: String, phoneNumber: String, imageUri: Uri?) {
+    fun login(username: String, phoneNumber: String, imageUri: Uri?, publicKey: String) {
         if (imageUri != null) {
             val imageRef = storage.getReference("DP").child(phoneNumber + "DP")
             imageRef.putFile(imageUri)
                 .addOnSuccessListener {
                     imageRef.downloadUrl.addOnSuccessListener { uri ->
                         val imageUrl = uri.toString()
-                        val userDetail = UserDetailModel(username, imageUrl)
+                        val userDetail = UserDetailModel(username, imageUrl, publicKey)
                         database.child(phoneNumber).setValue(userDetail)
                     }
                         .addOnFailureListener {
-                            val userDetail = UserDetailModel(username, "null")
+                            val userDetail = UserDetailModel(username, "null", publicKey)
                             database.child(phoneNumber).setValue(userDetail)
                         }
                 }
