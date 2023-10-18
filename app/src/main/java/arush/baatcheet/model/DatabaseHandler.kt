@@ -1,6 +1,7 @@
 package arush.baatcheet.model
 
 import android.net.Uri
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -29,6 +30,11 @@ class DatabaseHandler {
                             database.child(phoneNumber).setValue(userDetail)
                         }
                 }
+        }
+    }
+    fun getPublicKey(toWhom: String, callback: (String) -> (Unit)){
+        database.child(toWhom).child("pubKey").get().addOnSuccessListener {
+            callback(it.value.toString())
         }
     }
 
