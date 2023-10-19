@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Card
@@ -71,24 +74,27 @@ fun SavedMessage(){
                 Icon(imageVector = Icons.Filled.KeyboardArrowLeft , contentDescription = "Go back"
                 ,modifier = Modifier
                         .size(40.dp)
-                        .padding(top = 3.dp))
+                        .padding(top = 3.dp)
+                        .clickable { })
                 Text(text = "Saved Messages",
                     style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_medium))), fontSize = 29.sp)
                 )
             }
         })
-        Column (modifier = Modifier.fillMaxSize(),
+        Column (modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally) {
             LazyColumn(modifier = Modifier.fillMaxHeight()){
                 items(savedMessages){it->
                     Column (modifier = Modifier
-                        .fillParentMaxHeight(0.19f)
+                        .fillParentMaxHeight(0.2f)
                         .padding(vertical = 14.dp)){
                         MessageCard(username = it.username, message = it.message, timeStamp = it.timestamp)
                     }
                     Divider(color = Color(0xFFA3A3A3), modifier = Modifier
                         .fillMaxWidth(0.92f)
-                        .height(2.dp))
+                        .height(1.dp))
                 }
             }
         }
@@ -100,20 +106,21 @@ fun MessageCard(username: String, message: Any?, timeStamp: String){
     Card(modifier = Modifier
         .fillMaxWidth(0.9f)
         .fillMaxHeight(),
-        elevation = CardDefaults.cardElevation(4.dp),
+        elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(Color.White)) {
             Row (modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = 8.dp, vertical = 2.dp)
                 , horizontalArrangement = Arrangement.SpaceBetween){
                 Text(text = username,
-                    style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 16.sp))
+                    style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 15.sp))
                 Text(text = timeStamp,
-                    style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 16.sp))
+                    style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 15.sp))
             }
         Text(text = message.toString(),
             style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 18.sp),
-            overflow = TextOverflow.Ellipsis)
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
     }
 }
 
