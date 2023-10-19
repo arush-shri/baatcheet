@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Card
@@ -44,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.R
 import arush.baatcheet.model.FileHandler
+import arush.baatcheet.presenter.SavedMessagePresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 
 class SavedMessagesActivity : ComponentActivity() {
@@ -67,7 +66,7 @@ class SavedMessagesActivity : ComponentActivity() {
 @Composable
 fun SavedMessage(){
     val context = LocalContext.current
-    val savedMessages = FileHandler(context).retrieveSavedMessage()
+    val savedMessages = SavedMessagePresenter(context).getSaveMessage()
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -82,8 +81,7 @@ fun SavedMessage(){
             }
         })
         Column (modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally) {
             LazyColumn(modifier = Modifier.fillMaxHeight()){
                 items(savedMessages){it->
