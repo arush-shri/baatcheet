@@ -45,7 +45,6 @@ fun Greeting() {
     val context = LocalContext.current
     Text(text = "Hello")
     Button(onClick = {
-                     FileHandler(context).keyGenCaller()
     },
         modifier = Modifier.fillMaxHeight(0.1f).fillMaxWidth(0.5f)) {
         Text(text = "CLICK", style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_medium), weight = FontWeight.W500))))

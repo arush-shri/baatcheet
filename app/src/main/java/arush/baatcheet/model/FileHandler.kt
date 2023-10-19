@@ -3,6 +3,7 @@ package arush.baatcheet.model
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileWriter
 import java.security.KeyFactory
@@ -36,10 +37,37 @@ class FileHandler (private val context: Context){
     }
     fun getPrivateKey(){
         val privateFile = File(subdir, "privateKey.key")
-        privateFile.readBytes()
+        val keyBytes = privateFile.readBytes()
 
-//        val keySpec = PKCS8EncodedKeySpec(some);
-//        val keyFactory = KeyFactory.getInstance("RSA")
-//        Log.d("qwertyG", (keyFactory.generatePrivate(keySpec)).toString())
+        val keySpec = PKCS8EncodedKeySpec(keyBytes);
+        val keyFactory = KeyFactory.getInstance("RSA")
+        keyFactory.generatePrivate(keySpec)
+    }
+
+    fun storeSaveMessage(username: String, message: Any?, timestamp: String){
+        val data = SaveMessageModel(username, message, timestamp)
+        val file = File(subdir, "saveMessage.json")
+        val storedData = retrieveSavedMessage()
+        if(!file.exists()){
+            file.createNewFile()
+        }
+        val gson = Gson()
+        storedData.add(data)
+
+        val jsonData = gson.toJson(storedData)
+        val fileWriter = FileWriter(file, false)
+        fileWriter.write(jsonData)
+        fileWriter.close()
+    }
+
+    fun retrieveSavedMessage() : ArrayList<SaveMessageModel>{
+        val file = File(subdir, "saveMessage.json")
+        if(file.exists()){
+            val gson = Gson()
+            val jsonData = file.readText()
+            val dataList = object : TypeToken<ArrayList<SaveMessageModel>>() {}.type
+            return gson.fromJson(jsonData,dataList)
+        }
+        return ArrayList<SaveMessageModel>()
     }
 }
