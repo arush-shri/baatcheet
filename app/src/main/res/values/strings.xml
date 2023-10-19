@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">baatcheet</string>
+    <string name="title_activity_add_contact">AddContactActivity</string>
+    <string name="title_activity_saved_messages">SavedMessagesActivity</string>
 </resources>
