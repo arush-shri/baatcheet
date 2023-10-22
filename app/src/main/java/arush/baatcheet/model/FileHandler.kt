@@ -39,12 +39,12 @@ class FileHandler (private val context: Context){
         val privateFile = File(subdir, "privateKey.key")
         val keyBytes = privateFile.readBytes()
 
-        val keySpec = PKCS8EncodedKeySpec(keyBytes);
+        val keySpec = PKCS8EncodedKeySpec(keyBytes)
         val keyFactory = KeyFactory.getInstance("RSA")
         keyFactory.generatePrivate(keySpec)
     }
 
-    fun storeSaveMessage(username: String, message: Any?, timestamp: String){
+    fun storeSavedMessage(username: String, message: Any?, timestamp: String){
         val data = SaveMessageModel(username, message, timestamp)
         val file = File(subdir, "saveMessage.json")
         val storedData = retrieveSavedMessage()
@@ -67,6 +67,34 @@ class FileHandler (private val context: Context){
             val jsonData = file.readText()
             val dataList = object : TypeToken<ArrayList<SaveMessageModel>>() {}.type
             return gson.fromJson(jsonData,dataList)
+        }
+        return ArrayList<SaveMessageModel>()
+    }
+
+    fun storeChatMessage(username: String, message: Any?, timestamp: String){
+        val file = File(subdir, username+"DM.json")
+        if(!file.exists()){
+            file.createNewFile()
+        }
+        val gson = Gson()
+        val jsonData = gson.toJson(SaveMessageModel(username,message, timestamp))
+        val fileWriter = FileWriter(file, true)
+        fileWriter.write(jsonData)
+        fileWriter.close()
+    }
+
+    fun retrieveChatMessage(username: String) : ArrayList<SaveMessageModel>{
+        val file = File(subdir, username+"DM.json")
+        val gson = Gson()
+        if(file.exists()){
+            val messageArray = ArrayList<SaveMessageModel>()
+            val jsonData = file.readText()
+            val jsonObjects = jsonData.split("}")
+            for (message in jsonObjects){
+                val orgMessage = gson.fromJson("$message}", SaveMessageModel::class.java)
+                messageArray.add(orgMessage)
+            }
+            return messageArray
         }
         return ArrayList<SaveMessageModel>()
     }

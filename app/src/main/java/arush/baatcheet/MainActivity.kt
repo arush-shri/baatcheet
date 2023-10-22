@@ -1,6 +1,5 @@
 package arush.baatcheet
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,11 +18,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import arush.baatcheet.model.Cryptography
-import arush.baatcheet.model.DatabaseHandler
-import arush.baatcheet.model.FileHandler
 import arush.baatcheet.ui.theme.PanchayatTheme
-import arush.baatcheet.view.SavedMessagesActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,8 +31,6 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Greeting()
-                    val intent = Intent(this, SavedMessagesActivity::class.java)
-                    startActivity(intent)
                 }
             }
         }

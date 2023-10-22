@@ -38,8 +38,8 @@ class DatabaseHandler {
         }
     }
 
-    fun sendMessage(msg: String, toWhom: String){
-        val timeStamp = getCombinedTimestamp()
+    fun sendMessage(msg: String, toWhom: String, timeStamp:String){
+        //msg bhejte waqt ui me hi krle. Baad me
         var message = ArrayList<HashMap<String, String>>()
         database.child(toWhom).child("messageList").child(userNumber).child("messages")
             .get().addOnSuccessListener {
@@ -68,13 +68,13 @@ class DatabaseHandler {
         return messages
     }
 
-    private fun uploadData(imageUri: Uri, toWhom: String){
+    private fun uploadData(imageUri: Uri, toWhom: String, timeStamp: String){
         val imageRef = storage.getReference("SentFile").child(userNumber)
         imageRef.putFile(imageUri)
             .addOnSuccessListener {
                 imageRef.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
-                    sendMessage(imageUrl, toWhom)
+                    sendMessage(imageUrl, toWhom, timeStamp)
                 }
             }
     }
