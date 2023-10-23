@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.view.isVisible
-import arush.baatcheet.MainActivity
 import arush.baatcheet.databinding.ActivityLoginBinding
 import arush.baatcheet.presenter.LoginPresenter
 import com.google.firebase.auth.FirebaseAuth

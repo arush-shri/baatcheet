@@ -17,6 +17,11 @@
         android:theme="@style/Theme.Baatcheet"
         tools:targetApi="31">
         <activity
+            android:name=".view.ProfileActivity"
+            android:exported="false"
+            android:label="@string/title_activity_profile"
+            android:theme="@style/Theme.Baatcheet" />
+        <activity
             android:name=".view.SavedMessagesActivity"
             android:exported="false"
             android:label="@string/title_activity_saved_messages"
@@ -36,7 +41,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".view.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Baatcheet" />

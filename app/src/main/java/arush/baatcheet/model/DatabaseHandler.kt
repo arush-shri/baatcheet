@@ -6,8 +6,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class DatabaseHandler {
 
@@ -63,9 +67,23 @@ class DatabaseHandler {
             .get().addOnSuccessListener {
                 if(it.value != null){
                     messages = it.value as ArrayList<HashMap<String, String>>
+                    Log.d("qwerty", messages[0]["message"].toString())
                 }
             }
         return messages
+    }
+
+    suspend fun getMessagesList(): Map<String, Map<String,ArrayList<HashMap<String, String>>>> = suspendCoroutine { continuation ->
+        database.child(userNumber).child("messageList").get().addOnSuccessListener {
+            if (it.value != null) {
+                val data = it.value as Map<String, Map<String,ArrayList<HashMap<String, String>>>>
+                continuation.resume(data)
+            } else {
+                continuation.resume(emptyMap())
+            }
+        }.addOnFailureListener { e ->
+            continuation.resumeWithException(e)
+        }
     }
 
     private fun uploadData(imageUri: Uri, toWhom: String, timeStamp: String){
