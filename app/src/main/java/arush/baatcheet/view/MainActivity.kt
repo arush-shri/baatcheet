@@ -3,6 +3,7 @@ package arush.baatcheet.view
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -44,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -59,6 +61,7 @@ import arush.baatcheet.R
 import arush.baatcheet.model.FileHandler
 import arush.baatcheet.presenter.HomeScreenPresenter
 import coil.annotation.ExperimentalCoilApi
+import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import kotlinx.coroutines.flow.collect
 
@@ -175,6 +178,7 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
 @Composable
 fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     var chatsData by remember { mutableStateOf<List<String>?>(null) }
+    homeScreenPresenter.getDPLink("+919669620888")
     var homeData by remember { mutableStateOf<Map<String, Map<String,ArrayList<HashMap<String, String>>>>?>(null) }
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
@@ -197,8 +201,7 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
             horizontalAlignment = Alignment.Start,
         ) {
             items(chatsData!!) { chat ->
-                homeData!![chat]?.get("messages")?.let { ChatListItem(chat, it)
-                }
+                homeData!![chat]?.get("messages")?.let { ChatListItem(chat, it, homeScreenPresenter) }
                 Divider(
                     color = Gray,
                     thickness = 1.dp,
@@ -209,8 +212,22 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     }
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
-fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>) {
+fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>, homeScreenPresenter: HomeScreenPresenter) {
+    var image by remember { mutableStateOf<Painter?>(null) }
+    var imageLink by remember { mutableStateOf("") }
+    LaunchedEffect(homeScreenPresenter ){
+        homeScreenPresenter.getDPLink(contact).collect{
+            imageLink = it
+        }
+    }
+    image = if (!imageLink.isEmpty()) {
+        rememberImagePainter(data = imageLink)
+    } else {
+        painterResource(id = R.drawable.no_dp_logo)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,7 +236,8 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>) 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(id = R.drawable.no_dp_logo),
+            painter = image!!,
+            contentScale = ContentScale.Crop,
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)

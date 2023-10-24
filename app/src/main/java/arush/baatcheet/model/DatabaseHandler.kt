@@ -11,12 +11,8 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class DatabaseHandler {
 
@@ -84,7 +80,7 @@ class DatabaseHandler {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val data = snapshot.value as Map<String, Map<String, ArrayList<HashMap<String, String>>>>
-                    Log.d("qwertyC", data.toString())
+                    Log.d("qwertyD", data.toString())
                     trySend(data).isSuccess
                 } else {
                     trySend(emptyMap()).isSuccess
@@ -99,6 +95,15 @@ class DatabaseHandler {
         awaitClose {
             dbReference.removeEventListener(valueEventListener)
         }
+    }
+
+    fun getDPLink(username: String)= callbackFlow<String>{
+        database.child(username).child("profileDPLink").get().addOnSuccessListener {
+            if(it.value != null){
+                trySend(it.value.toString())
+            }
+        }
+        awaitClose { }
     }
 
     private fun uploadData(imageUri: Uri, toWhom: String, timeStamp: String){
