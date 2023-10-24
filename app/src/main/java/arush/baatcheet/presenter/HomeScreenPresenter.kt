@@ -1,11 +1,17 @@
 package arush.baatcheet.presenter
 
+import android.content.Context
+import android.net.Uri
 import arush.baatcheet.model.DatabaseHandler
-import arush.baatcheet.model.SaveMessageModel
+import arush.baatcheet.model.FileHandler
+import kotlinx.coroutines.flow.Flow
 
-class HomeScreenPresenter() {
+class HomeScreenPresenter(private val context : Context) {
     private val connection = DatabaseHandler()
-    suspend fun getMessageList(): Map<String, Map<String,ArrayList<HashMap<String, String>>>> {
+    fun getMessageList(): Flow<Map<String, Map<String, ArrayList<HashMap<String, String>>>>> {
         return connection.getMessagesList()
+    }
+    fun getMyDp(): Uri {
+        return FileHandler(context).getMyDP()
     }
 }

@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.view.isVisible
+import arush.baatcheet.R
 import arush.baatcheet.databinding.ActivityLoginBinding
+import arush.baatcheet.model.FileHandler
 import arush.baatcheet.presenter.LoginPresenter
 import com.google.firebase.auth.FirebaseAuth
 
@@ -75,7 +77,11 @@ class LoginActivity : AppCompatActivity() {
             if(requestCode == reqCode){
                 if (data != null) {
                     imageUri = data.data!!
+                    FileHandler(applicationContext).storeDP(imageUri!!)
                     loginBinding.profileImage.setImageURI(imageUri)
+                }
+                else{
+                    FileHandler(applicationContext).storeDP(Uri.parse("android.resource://${this.packageName}/${R.drawable.no_dp_logo}"))
                 }
             }
         }

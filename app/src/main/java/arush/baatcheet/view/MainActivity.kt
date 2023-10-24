@@ -1,8 +1,8 @@
 package arush.baatcheet.view
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,8 +56,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 import arush.baatcheet.R
-import arush.baatcheet.model.DatabaseHandler
+import arush.baatcheet.model.FileHandler
 import arush.baatcheet.presenter.HomeScreenPresenter
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberImagePainter
+import kotlinx.coroutines.flow.collect
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +81,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     var isSearchBarActive by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val homeScreenPresenter = remember { HomeScreenPresenter(context) }
 
     Box {
         Column {
@@ -88,7 +95,7 @@ fun MainScreen() {
                     }
                 )
             } else {
-                AppBar(
+                AppBar( homeScreenPresenter,
                     onSearchIconClick = {
                         isSearchBarActive = true
                     }
@@ -99,7 +106,7 @@ fun MainScreen() {
                 thickness = 1.dp,
                 modifier = Modifier.fillMaxWidth()
             )
-            ChatList()
+            ChatList(homeScreenPresenter)
         }
 
         FloatingActionButton(
@@ -117,8 +124,9 @@ fun MainScreen() {
     }
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
-fun AppBar(onSearchIconClick: () -> Unit) {
+fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Unit) {
     val context = LocalContext.current
 
     Row(
@@ -147,10 +155,12 @@ fun AppBar(onSearchIconClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(16.dp))
         Image(
-            painter = painterResource(id = R.drawable.no_dp_logo),
+            painter = rememberImagePainter(data = homeScreenPresenter.getMyDp()),
+            contentScale = ContentScale.Crop,
             contentDescription = null,
             modifier = Modifier
-                .size(50.dp)
+                .size(42.dp)
+                .fillMaxSize()
                 .clip(CircleShape)
                 .clickable {
                     val intent = Intent(context, ProfileActivity::class.java)
@@ -163,13 +173,15 @@ fun AppBar(onSearchIconClick: () -> Unit) {
 }
 
 @Composable
-fun ChatList() {
+fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     var chatsData by remember { mutableStateOf<List<String>?>(null) }
-    val homeScreenPresenter = HomeScreenPresenter()
     var homeData by remember { mutableStateOf<Map<String, Map<String,ArrayList<HashMap<String, String>>>>?>(null) }
     LaunchedEffect(homeScreenPresenter) {
-        homeData = homeScreenPresenter.getMessageList()
-        chatsData = homeData!!.keys.toList()
+        homeScreenPresenter.getMessageList().collect{
+            homeData = it
+            chatsData = homeData!!.keys.toList()
+        }
+//        list aane k baad indi file me store ka fun chala de
     }
 
     if(homeData == null){
@@ -185,7 +197,8 @@ fun ChatList() {
             horizontalAlignment = Alignment.Start,
         ) {
             items(chatsData!!) { chat ->
-                homeData!![chat]?.get("messages")?.let { ChatListItem(chat, it.size) }
+                homeData!![chat]?.get("messages")?.let { ChatListItem(chat, it)
+                }
                 Divider(
                     color = Gray,
                     thickness = 1.dp,
@@ -197,7 +210,7 @@ fun ChatList() {
 }
 
 @Composable
-fun ChatListItem(contact: String, unreadCount: Int) {
+fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,15 +232,17 @@ fun ChatListItem(contact: String, unreadCount: Int) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
-            Text(
-                text = "Last message in the chat",
-                color = Gray,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            messages.last()["message"]?.let {
+                Text(
+                    text = it,
+                    color = Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
-        CustomBadge(unreadCount)
+        CustomBadge(messages.size)
     }
 }
 

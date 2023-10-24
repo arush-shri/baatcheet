@@ -3,9 +3,14 @@ package arush.baatcheet.model
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -73,16 +78,26 @@ class DatabaseHandler {
         return messages
     }
 
-    suspend fun getMessagesList(): Map<String, Map<String,ArrayList<HashMap<String, String>>>> = suspendCoroutine { continuation ->
-        database.child(userNumber).child("messageList").get().addOnSuccessListener {
-            if (it.value != null) {
-                val data = it.value as Map<String, Map<String,ArrayList<HashMap<String, String>>>>
-                continuation.resume(data)
-            } else {
-                continuation.resume(emptyMap())
+    fun getMessagesList() = callbackFlow<Map<String, Map<String, ArrayList<HashMap<String, String>>>>> {
+        val dbReference = database.child(userNumber).child("messageList")
+        val valueEventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val data = snapshot.value as Map<String, Map<String, ArrayList<HashMap<String, String>>>>
+                    Log.d("qwertyC", data.toString())
+                    trySend(data).isSuccess
+                } else {
+                    trySend(emptyMap()).isSuccess
+                }
             }
-        }.addOnFailureListener { e ->
-            continuation.resumeWithException(e)
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+
+        dbReference.addValueEventListener(valueEventListener)
+        awaitClose {
+            dbReference.removeEventListener(valueEventListener)
         }
     }
 

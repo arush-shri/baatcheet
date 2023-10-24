@@ -1,11 +1,19 @@
 package arush.baatcheet.model
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import arush.baatcheet.R
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.FileWriter
+import java.net.URI
 import java.security.KeyFactory
 import java.security.spec.PKCS8EncodedKeySpec
 
@@ -16,6 +24,32 @@ class FileHandler (private val context: Context){
         if(!subdir.exists()){
             subdir.mkdirs()
         }
+    }
+    fun storeDP(imageUri: Uri){
+        val file = File(subdir, "dp.jpg")
+        FileInputStream(File(imageUri.path)).use {input->
+            FileOutputStream(file).use {output->
+                val buffer = ByteArray(1024)
+                var byteRead: Int
+                while (input.read(buffer).also { byteRead = it} != -1){
+                    output.write(buffer,0,byteRead)
+                }
+            }
+        }
+    }
+    fun storeDPRes(){
+        val drawable = ContextCompat.getDrawable(context, R.drawable.no_dp_logo)
+        val bitmap = drawable?.toBitmap()
+        if (bitmap != null){
+            val file = File(subdir, "dp.jpg")
+            val outputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            outputStream.close()
+        }
+    }
+    fun getMyDP(): Uri {
+        val file = File(subdir, "dp.jpg")
+        return Uri.fromFile(file)
     }
 
     fun keyGenCaller() : String{
