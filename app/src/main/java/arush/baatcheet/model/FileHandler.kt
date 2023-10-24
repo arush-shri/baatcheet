@@ -3,17 +3,17 @@ package arush.baatcheet.model
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import arush.baatcheet.R
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.FileWriter
-import java.net.URI
 import java.security.KeyFactory
 import java.security.spec.PKCS8EncodedKeySpec
 
@@ -25,27 +25,51 @@ class FileHandler (private val context: Context){
             subdir.mkdirs()
         }
     }
-    fun storeDP(imageUri: Uri){
-        val file = File(subdir, "dp.jpg")
-        FileInputStream(File(imageUri.path)).use {input->
-            FileOutputStream(file).use {output->
-                val buffer = ByteArray(1024)
-                var byteRead: Int
-                while (input.read(buffer).also { byteRead = it} != -1){
-                    output.write(buffer,0,byteRead)
-                }
+
+    fun storeProfileDetails(username: String,phoneNumber: String){
+        val file = File(subdir, "profileData.json")
+        if(!file.exists()){file.createNewFile()}
+        val gson = Gson()
+        var data = ArrayList<String>()
+        data.add(username)
+        data.add(phoneNumber)
+        val jsonData = gson.toJson(data)
+        val fileWriter = FileWriter(file, false)
+        fileWriter.write(jsonData)
+        fileWriter.close()
+    }
+
+    fun getProfileDetails(): ArrayList<String> {
+        val file = File(subdir, "profileData.json")
+        val gson = Gson()
+        val jsonData = file.readText()
+        return gson.fromJson<ArrayList<String>>(jsonData, ArrayList::class.java)
+    }
+
+    fun storeDP(imageUri: Uri?){
+        val inputStream = if (imageUri != null) {
+            context.contentResolver.openInputStream(imageUri)
+        } else {
+            val drawable = ContextCompat.getDrawable(context, R.drawable.no_dp_logo)
+            val bitmap = drawable?.toBitmap()
+            bitmap?.let {
+                val stream = ByteArrayOutputStream()
+                it.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                ByteArrayInputStream(stream.toByteArray())
             }
         }
-    }
-    fun storeDPRes(){
-        val drawable = ContextCompat.getDrawable(context, R.drawable.no_dp_logo)
-        val bitmap = drawable?.toBitmap()
-        if (bitmap != null){
-            val file = File(subdir, "dp.jpg")
-            val outputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-            outputStream.close()
+        inputStream?.use { input ->
+            val outputStream = FileOutputStream(File(subdir, "dp.jpg"))
+            input.copyTo(outputStream)
         }
+//        val drawable = ContextCompat.getDrawable(context, R.drawable.no_dp_logo)
+//        val bitmap = drawable?.toBitmap()
+//        if (bitmap != null){
+//            val file = File(subdir, "dp.jpg")
+//            val outputStream = FileOutputStream(file)
+//            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+//            outputStream.close()
+//        }
     }
     fun getMyDP(): Uri {
         val file = File(subdir, "dp.jpg")

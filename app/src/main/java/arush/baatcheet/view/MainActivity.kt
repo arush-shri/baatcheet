@@ -167,8 +167,6 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
                 .clip(CircleShape)
                 .clickable {
                     val intent = Intent(context, ProfileActivity::class.java)
-                    intent.putExtra("profile_name", "John Doe")
-                    intent.putExtra("phone_number", "+1234567890")
                     context.startActivity(intent)
                 }
         )

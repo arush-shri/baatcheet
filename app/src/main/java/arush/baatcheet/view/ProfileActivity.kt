@@ -1,6 +1,8 @@
 package arush.baatcheet.view
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -32,13 +34,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -47,19 +53,41 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.R
+import arush.baatcheet.presenter.ProfileSectionPresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberImagePainter
 
 class ProfileActivity : ComponentActivity() {
+    private val reqCode = 1000
+    private lateinit var filePresenter : ProfileSectionPresenter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        filePresenter = ProfileSectionPresenter(applicationContext)
         setContent {
             BaatcheetTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ProfilePage(profileName = "John", phoneNumber = "+0123456789")
+                    ProfilePage(filePresenter){
+                        changeDP()
+                    }
+                }
+            }
+        }
+    }
+    private fun changeDP(){
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        startActivityForResult(intent, reqCode)
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(resultCode== RESULT_OK){
+            if(requestCode == reqCode){
+                if (data != null) {
+                    filePresenter.setMyDP(data.data!!)
                 }
             }
         }
@@ -67,9 +95,8 @@ class ProfileActivity : ComponentActivity() {
 }
 
 @Composable
-fun ProfilePage(profileName: String, phoneNumber: String) {
-    val profileName = profileName
-    val phoneNumber = phoneNumber
+fun ProfilePage(filePresenter: ProfileSectionPresenter,callback: ()->(Unit)) {
+    val profileDetail = filePresenter.getProfileDetails()
 
     Column(
         modifier = Modifier
@@ -89,31 +116,34 @@ fun ProfilePage(profileName: String, phoneNumber: String) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally) {
-            ProfilePicture(
-                modifier = Modifier
-                    .size(200.dp) //Pic Size
-                    .clip(CircleShape)
-                    .clickable { /* If you want to  enlarge image and see */ }
-                    .align(Alignment.CenterHorizontally)
+            ProfilePicture(filePresenter, modifier = Modifier
+                .size(200.dp) //Pic Size
+                .clip(CircleShape)
+                .clickable { callback() }
+                .align(Alignment.CenterHorizontally)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             ProfileDetails(
                 label = "Name:",
-                value = profileName,
+                value = profileDetail[0],
                 icon = Icons.Default.Person
             )
 
-            Divider(modifier = Modifier.fillMaxWidth().height(2.dp), color = Color.Gray)
+            Divider(modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp), color = Color.Gray)
 
             ProfileDetails(
                 label = "Number: ",
-                value = phoneNumber,
+                value = profileDetail[1],
                 icon = Icons.Default.Phone
             )
 
-            Divider(modifier = Modifier.fillMaxWidth().height(2.dp), color = Color.Gray)
+            Divider(modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp), color = Color.Gray)
 
             Box(
                 modifier = Modifier
@@ -123,7 +153,9 @@ fun ProfilePage(profileName: String, phoneNumber: String) {
                 SavedMessages(icon = Icons.Default.Star)
             }
 
-            Divider(modifier = Modifier.fillMaxWidth().height(2.dp), color = Color.Gray)
+            Divider(modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp), color = Color.Gray)
 
             Spacer(modifier = Modifier.height(24.dp))
             Button(
@@ -202,21 +234,21 @@ fun SavedMessages(icon: ImageVector) {
     }
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
-fun ProfilePicture(modifier: Modifier) {
-    // Replace with ProfileActivity Pics
+fun ProfilePicture(profileSectionPresenter: ProfileSectionPresenter,modifier: Modifier) {
     Image(
-        painter = painterResource(id = R.drawable.no_dp_logo),
+        painter = rememberImagePainter(data = profileSectionPresenter.getMyDp()),
         contentDescription = null,
         modifier = modifier,
         contentScale = ContentScale.Crop
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ProfilePagePreview() {
-    BaatcheetTheme {
-        ProfilePage(profileName = "", phoneNumber = "")
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun ProfilePagePreview() {
+//    BaatcheetTheme {
+//        ProfilePage(ProfileSectionPresenter(LocalContext.current)){}
+//    }
+//}
