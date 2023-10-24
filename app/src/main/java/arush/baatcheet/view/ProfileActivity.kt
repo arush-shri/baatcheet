@@ -34,10 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,7 +45,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.R
@@ -97,6 +92,7 @@ class ProfileActivity : ComponentActivity() {
 @Composable
 fun ProfilePage(filePresenter: ProfileSectionPresenter,callback: ()->(Unit)) {
     val profileDetail = filePresenter.getProfileDetails()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -148,7 +144,10 @@ fun ProfilePage(filePresenter: ProfileSectionPresenter,callback: ()->(Unit)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { /* Handle click action for Saved Messages here */ }
+                    .clickable {
+                        val intent = Intent(context, SavedMessagesActivity::class.java)
+                        context.startActivity(intent)
+                    }
             ) {
                 SavedMessages(icon = Icons.Default.Star)
             }
@@ -197,11 +196,11 @@ fun ProfileDetails(label: String, value: String, icon: ImageVector) {
         Column {
             Text(text = label,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
+                fontSize = 17.sp,
                 color = Color.Gray)
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = value,
-                fontSize = 16.sp,
+                fontSize = 17.sp,
                 fontFamily = FontFamily(Font(R.font.lexend_regular))
             )
         }

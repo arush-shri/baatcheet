@@ -37,6 +37,14 @@ class DatabaseHandler {
                 }
         }
     }
+    fun updateDP(imageUri: Uri){
+        val imageRef = storage.getReference("DP").child(userNumber + "DP")
+        imageRef.putFile(imageUri).addOnSuccessListener {
+            imageRef.downloadUrl.addOnSuccessListener {
+                database.child(userNumber).child("profileDPLink").setValue(it.toString())
+            }
+        }
+    }
     fun getPublicKey(toWhom: String, callback: (String) -> (Unit)){
         database.child(toWhom).child("pubKey").get().addOnSuccessListener {
             callback(it.value.toString())
