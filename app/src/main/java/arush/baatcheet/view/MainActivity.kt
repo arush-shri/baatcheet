@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -143,7 +144,7 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
             style = TextStyle(
                 fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = if (isSystemInDarkTheme()) Gray else Black
+                color = MaterialTheme.colorScheme.secondary
             )
         )
         Spacer(modifier = Modifier.weight(1f))
@@ -246,12 +247,16 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>, 
             Text(
                 text = contact,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.secondary,
             )
             messages.last()["message"]?.let {
                 Text(
                     text = it,
-                    color = Gray,
+                    color = if(isSystemInDarkTheme()){
+                        LightGray
+                    }else{
+                        Gray},
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -273,7 +278,7 @@ fun CustomBadge(unreadCount: Int) {
         ) {
             Text(
                 text = "$unreadCount",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
             )

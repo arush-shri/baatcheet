@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,7 +80,7 @@ fun SavedMessage(){
                     style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_medium))), fontSize = 29.sp)
                 )
             }
-        })
+        }, colors = TopAppBarDefaults.largeTopAppBarColors(Color.Transparent))
         Column (modifier = Modifier
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -105,7 +106,7 @@ fun MessageCard(username: String, message: Any?, timeStamp: String){
         .fillMaxWidth(0.9f)
         .fillMaxHeight(),
         elevation = CardDefaults.cardElevation(8.dp),
-        colors = CardDefaults.cardColors(Color.White)) {
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onTertiary)) {
             Row (modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 2.dp)

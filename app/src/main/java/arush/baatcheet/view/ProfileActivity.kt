@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -170,7 +171,7 @@ fun ProfilePage(filePresenter: ProfileSectionPresenter,callback: ()->(Unit)) {
             ) {
                 Text(
                     text = "Edit Profile",
-                    color = Color(0xFF311B92),
+                    color = MaterialTheme.colorScheme.tertiary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.lexend_regular))
@@ -197,10 +198,15 @@ fun ProfileDetails(label: String, value: String, icon: ImageVector) {
             Text(text = label,
                 fontWeight = FontWeight.Bold,
                 fontSize = 17.sp,
-                color = Color.Gray)
+                color = if(isSystemInDarkTheme()){
+                    Color.LightGray
+                }else{
+                    Color.Gray
+                })
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = value,
                 fontSize = 17.sp,
+                color = MaterialTheme.colorScheme.secondary,
                 fontFamily = FontFamily(Font(R.font.lexend_regular))
             )
         }
@@ -226,7 +232,7 @@ fun SavedMessages(icon: ImageVector) {
             Text(
                 text = "Saved Messages",
                 fontSize = 22.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.secondary,
                 fontFamily = FontFamily(Font(R.font.lexend_regular))
             )
         }
