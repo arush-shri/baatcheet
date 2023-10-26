@@ -76,7 +76,7 @@ class DatabaseHandler {
             .get().addOnSuccessListener {
                 if(it.value != null){
                     messages = it.value as ArrayList<HashMap<String, String>>
-                    Log.d("qwerty", messages[0]["message"].toString())
+//                    Log.d("qwerty", messages[0]["message"].toString())
                 }
             }
         return messages
@@ -88,7 +88,7 @@ class DatabaseHandler {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val data = snapshot.value as Map<String, Map<String, ArrayList<HashMap<String, String>>>>
-                    Log.d("qwertyD", data.toString())
+//                    Log.d("qwertyD", data.toString())
                     trySend(data).isSuccess
                 } else {
                     trySend(emptyMap()).isSuccess
@@ -103,6 +103,9 @@ class DatabaseHandler {
         awaitClose {
             dbReference.removeEventListener(valueEventListener)
         }
+    }
+    fun removeList(keyList: List<String>){
+        database.child(userNumber).child("messageList").setValue(emptyMap<String, Map<String, ArrayList<HashMap<String, String>>>>())
     }
 
     fun getDPLink(username: String)= callbackFlow<String>{

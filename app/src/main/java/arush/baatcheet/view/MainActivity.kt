@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 import arush.baatcheet.R
+import arush.baatcheet.model.DatabaseHandler
 import arush.baatcheet.model.FileHandler
 import arush.baatcheet.presenter.HomeScreenPresenter
 import coil.annotation.ExperimentalCoilApi
@@ -86,7 +87,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     var isSearchBarActive by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val homeScreenPresenter = remember { HomeScreenPresenter(context) }
+    val homeScreenPresenter = HomeScreenPresenter(context)
 
     Box {
         Column {
@@ -176,46 +177,50 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
 
 @Composable
 fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
-    var chatsData by remember { mutableStateOf<List<String>?>(null) }
-    homeScreenPresenter.getDPLink("+919669620888")
-    var homeData by remember { mutableStateOf<Map<String, Map<String,ArrayList<HashMap<String, String>>>>?>(null) }
+    var chatsData by remember { mutableStateOf(emptyList<String>()) }
+    var homeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
+    var tempHomeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
             homeData = it
-            chatsData = homeData!!.keys.toList()
+            tempHomeData = homeScreenPresenter.getMessageListFile()
+            homeScreenPresenter.setMessageList(it)
+            chatsData = homeData.keys.toList()
         }
-//        list aane k baad indi file me store ka fun chala de
+//        list aane k baad indi file me store ka fun chala        remove vala bhi individual me
     }
 
-    if(homeData == null){
-        Column (modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally){
-            CircularProgressIndicator()
-        }
-    }
-    else{
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.Start,
-        ) {
-            items(chatsData!!) { chat ->
-                homeData!![chat]?.get("messages")?.let { ChatListItem(chat, it, homeScreenPresenter) }
-                Divider(
-                    color = Gray,
-                    thickness = 1.dp,
-                    modifier = Modifier.fillMaxWidth()
-                )
+    LazyColumn(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.Start,
+    ) {
+        items(chatsData) { chat ->
+            homeData[chat]?.get("messages")?.let {
+                if(it.last()["message"] != tempHomeData[chat]?.get("messages")?.last()?.get("message")){
+                    ChatListItem(chat, it, homeScreenPresenter, it.size- tempHomeData[chat]?.get("messages")?.size!!)
+                }
+                else{
+                    ChatListItem(chat, it, homeScreenPresenter, 0)
+                }
+
             }
+
+            Divider(
+                color = Gray,
+                thickness = 1.dp,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>, homeScreenPresenter: HomeScreenPresenter) {
+fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>,
+                 homeScreenPresenter: HomeScreenPresenter, msgChange: Int) {
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
+    var msgCount by remember { mutableStateOf(msgChange) }
     LaunchedEffect(homeScreenPresenter ){
         homeScreenPresenter.getDPLink(contact).collect{
             imageLink = it
@@ -230,7 +235,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>, 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Handle chat item click here */ }
+            .clickable { msgCount = 0 }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -263,7 +268,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>, 
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        CustomBadge(messages.size)
+        CustomBadge(msgCount)
     }
 }
 

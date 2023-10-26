@@ -8,6 +8,8 @@ import androidx.core.graphics.drawable.toBitmap
 import arush.baatcheet.R
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -129,6 +131,22 @@ class FileHandler (private val context: Context){
         return ArrayList<SaveMessageModel>()
     }
 
+    fun storeHomeMessage(messageList: Map<String, Map<String, ArrayList<HashMap<String, String>>>>){
+        val file = File(subdir, "messageList.json")
+        if(!file.exists()){file.createNewFile()}
+        val fileWriter = FileWriter(file,false)
+        val gson = Gson()
+        val jsonData = gson.toJson(messageList)
+        fileWriter.write(jsonData)
+        fileWriter.close()
+    }
+    fun getHomeMessage() : Map<String, Map<String, ArrayList<HashMap<String, String>>>>{
+        val file = File(subdir, "messageList.json")
+        val gson = Gson()
+        val jsonData = file.readText()
+        val mapType = object : TypeToken<Map<String, Map<String, ArrayList<HashMap<String, String>>>>>() {}.type
+        return gson.fromJson(jsonData, mapType)
+    }
     fun storeChatMessage(username: String, message: Any?, timestamp: String){
         val file = File(subdir, username+"DM.json")
         if(!file.exists()){
