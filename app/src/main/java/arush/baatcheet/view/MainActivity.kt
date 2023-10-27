@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,6 +53,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,8 +95,11 @@ fun MainScreen() {
     Box {
         Column {
             if (isSearchBarActive) {
+                BackHandler {
+                    isSearchBarActive = false
+                }
                 SearchBar(
-                    onSearchQueryChange = { query ->
+                    onSearchQueryChange = {
                     },
                     onSearchBarClose = {
                         isSearchBarActive = false
@@ -115,7 +121,10 @@ fun MainScreen() {
         }
 
         FloatingActionButton(
-            onClick = { /*TODO*/ },
+            onClick = {
+                val intent = Intent(context, AddContactActivity::class.java)
+                context.startActivity(intent)
+            },
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.BottomEnd)
@@ -145,6 +154,7 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
             style = TextStyle(
                 fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily(Font((R.font.lexend_regular))),
                 color = MaterialTheme.colorScheme.secondary
             )
         )
@@ -254,6 +264,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.secondary,
+                fontFamily = FontFamily(Font((R.font.lexend_regular))),
             )
             messages.last()["message"]?.let {
                 Text(
@@ -263,7 +274,8 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>,
                     }else{
                         Gray},
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))))
                 )
             }
         }
@@ -285,7 +297,8 @@ fun CustomBadge(unreadCount: Int) {
                 text = "$unreadCount",
                 color = MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                fontSize = 15.sp,
+                fontFamily = FontFamily(Font((R.font.lexend_regular))),
             )
         }
     }
@@ -327,7 +340,7 @@ fun SearchBar(
                     onSearchQueryChange(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(fontSize = 16.sp),
+                textStyle = TextStyle(fontSize = 16.sp,fontFamily = FontFamily(Font((R.font.lexend_regular))),),
                 placeholder = { Text(text = "Search") },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(

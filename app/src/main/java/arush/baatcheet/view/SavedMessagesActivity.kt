@@ -81,8 +81,7 @@ fun SavedMessage(){
                 )
             }
         }, colors = TopAppBarDefaults.largeTopAppBarColors(Color.Transparent))
-        Column (modifier = Modifier
-            .fillMaxSize(),
+        Column (modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally) {
             LazyColumn(modifier = Modifier.fillMaxHeight()){
                 items(savedMessages){it->
