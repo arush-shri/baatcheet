@@ -18,7 +18,7 @@ class AddContactModel {
             while (it.moveToNext()) {
                 val name = it.getString(nameIndex)
                 val phoneNumber = it.getString(phoneNumberIndex)
-                contactList.add(ContactItem(name, phoneNumber))
+                contactList.add(ContactItem(name, phoneNumber.replace(" ", "")))
             }
         }
         return contactList

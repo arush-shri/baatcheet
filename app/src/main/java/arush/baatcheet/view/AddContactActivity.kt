@@ -89,6 +89,7 @@ class AddContactActivity : ComponentActivity() {
 fun AddContact() {
     var textVisibility by remember { mutableStateOf(false) }
     var searchVisibility by remember { mutableStateOf(false) }
+    var contactSelectionList = mutableListOf<String>()
     var searchText by remember { mutableStateOf("") }
     val addContactPresenter = AddContactPresenter()
     var contactList = addContactPresenter.getContactList(LocalContext.current.contentResolver)
@@ -163,10 +164,24 @@ fun AddContact() {
             horizontalAlignment = Alignment.CenterHorizontally) {
             LazyColumn(modifier = Modifier.fillMaxWidth(0.92f)){
                 items(contactList){
+                    var isSelected by remember { mutableStateOf(false) }
+                    var bgColor = if(isSelected && textVisibility) {
+                        if(isSystemInDarkTheme())Color(0xFF179B38) else Color(0xFF02EC3D)
+                    } else Color.Transparent
                     Column (modifier = Modifier
                         .fillParentMaxHeight(0.09f)
-                        .padding(vertical = 14.dp)){
-                        ContactDisplay(it.name, it.phoneNumber, addContactPresenter)
+                        .background(color = bgColor)){
+                        ContactDisplay(it.name, it.phoneNumber, addContactPresenter){
+                            if(textVisibility){
+                                isSelected = !isSelected
+                                contactSelectionList.add(it)
+                                Log.d("qwertyL", contactSelectionList.toString())
+                            }
+                            else{
+                                contactSelectionList.clear()
+                            }
+                            /*Else Open Chat*/
+                        }
                     }
                     Divider(color = Color(0xFFA3A3A3), modifier = Modifier
                         .fillMaxWidth()
@@ -227,9 +242,10 @@ fun SearchContacts(
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 
-fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPresenter){
+fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPresenter, select:(String) -> Unit){
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
+    var isSelected by remember { mutableStateOf(false) }
     val context = LocalContext.current
     LaunchedEffect(addContactPresenter){
         addContactPresenter.getDPLink(number).collect{
@@ -241,14 +257,19 @@ fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPr
     } else {
         painterResource(id = R.drawable.no_dp_logo)
     }
-    Row(modifier = Modifier.fillMaxWidth(),
+    Row(modifier = Modifier
+        .fillMaxSize()
+        .clickable {
+            if (imageLink.isNotEmpty()) {
+                select(number)
+            }
+        },
         verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = image!!, contentScale = ContentScale.Crop, contentDescription = null,
             modifier = Modifier
-                .size(35.dp)
-                .clip(CircleShape)
-                .background(color = Color.Red),
+                .size(40.dp)
+                .clip(CircleShape),
         )
         Text(text = name,
             style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 20.sp),
