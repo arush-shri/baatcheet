@@ -81,7 +81,9 @@ class LoginActivity : AppCompatActivity() {
                     loginBinding.profileImage.setImageURI(imageUri)
                 }
                 else{
-                    FileHandler(applicationContext).storeDP(Uri.parse("android.resource://${this.packageName}/${R.drawable.no_dp_logo}"))
+                    imageUri = Uri.parse("android.resource://${this.packageName}/${R.drawable.no_dp_logo}")
+                    FileHandler(applicationContext).storeDP(imageUri)
+                    loginBinding.profileImage.setImageURI(imageUri)
                 }
             }
         }
