@@ -89,7 +89,7 @@ class AddContactActivity : ComponentActivity() {
 fun AddContact() {
     var textVisibility by remember { mutableStateOf(false) }
     var searchVisibility by remember { mutableStateOf(false) }
-    var contactSelectionList = mutableListOf<String>()
+    var contactSelectionList = mutableSetOf<String>()
     var searchText by remember { mutableStateOf("") }
     val addContactPresenter = AddContactPresenter()
     var contactList = addContactPresenter.getContactList(LocalContext.current.contentResolver)
@@ -167,18 +167,25 @@ fun AddContact() {
                     var isSelected by remember { mutableStateOf(false) }
                     var bgColor = if(isSelected && textVisibility) {
                         if(isSystemInDarkTheme())Color(0xFF179B38) else Color(0xFF02EC3D)
-                    } else Color.Transparent
+                    } else {
+                        contactSelectionList.clear()
+                        isSelected = false
+                        Color.Transparent
+                    }
                     Column (modifier = Modifier
                         .fillParentMaxHeight(0.09f)
                         .background(color = bgColor)){
                         ContactDisplay(it.name, it.phoneNumber, addContactPresenter){
                             if(textVisibility){
+                                Log.d("qwertyL1", contactSelectionList.toString())
                                 isSelected = !isSelected
-                                contactSelectionList.add(it)
-                                Log.d("qwertyL", contactSelectionList.toString())
-                            }
-                            else{
-                                contactSelectionList.clear()
+                                if(it in contactSelectionList){
+                                    contactSelectionList.remove(it)
+                                }
+                                else{
+                                    contactSelectionList.add(it)
+                                }
+                                Log.d("qwertyL2", contactSelectionList.toString())
                             }
                             /*Else Open Chat*/
                         }
@@ -226,8 +233,8 @@ fun SearchContacts(
                     searchText = it
                 },
                 modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(fontSize = 18.sp,fontFamily = FontFamily(Font((R.font.lexend_regular))),),
-                placeholder = { Text(text = "Search", style = TextStyle(fontSize = 18.sp,fontFamily = FontFamily(Font((R.font.lexend_regular))),)) },
+                textStyle = TextStyle(fontSize = 18.sp,fontFamily = FontFamily(Font((R.font.lexend_regular)))),
+                placeholder = { Text(text = "Search", style = TextStyle(fontSize = 18.sp,fontFamily = FontFamily(Font((R.font.lexend_regular))))) },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -245,7 +252,6 @@ fun SearchContacts(
 fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPresenter, select:(String) -> Unit){
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
-    var isSelected by remember { mutableStateOf(false) }
     val context = LocalContext.current
     LaunchedEffect(addContactPresenter){
         addContactPresenter.getDPLink(number).collect{
@@ -279,7 +285,7 @@ fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPr
                 .fillMaxSize(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically) {
-                Row(modifier = Modifier.clickable { sendInvite(number, context) },) {
+                Row(modifier = Modifier.clickable { sendInvite(number, context) }) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = "new group",
                         tint = if(isSystemInDarkTheme()){
                             Color(0xFF13B900)
@@ -316,6 +322,6 @@ private fun sendInvite(number:String,context: Context){
 
 @Preview
 @Composable
-fun prev(){
+fun Prev(){
     AddContact()
 }
