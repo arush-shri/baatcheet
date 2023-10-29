@@ -17,7 +17,12 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.FileWriter
 import java.security.KeyFactory
+import java.security.PrivateKey
+import java.security.PublicKey
 import java.security.spec.PKCS8EncodedKeySpec
+import java.security.spec.X509EncodedKeySpec
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class FileHandler (private val context: Context){
     private val dir = context.filesDir
@@ -95,13 +100,39 @@ class FileHandler (private val context: Context){
         privateFile.writeBytes(privateKey)
         fileWriter.close()
     }
-    fun getPrivateKey(){
+    fun getPrivateKey():PrivateKey{
         val privateFile = File(subdir, "privateKey.key")
         val keyBytes = privateFile.readBytes()
 
         val keySpec = PKCS8EncodedKeySpec(keyBytes)
         val keyFactory = KeyFactory.getInstance("RSA")
-        keyFactory.generatePrivate(keySpec)
+        return keyFactory.generatePrivate(keySpec)
+    }
+
+    fun storePublicKey(publicKey: ByteArray, username: String){
+        val mainDir = File(subdir, username)
+        if(!mainDir.exists()){
+            mainDir.mkdir()
+        }
+        val file = File(mainDir, username+"Key.key")
+        if(!file.exists()){
+            file.createNewFile()
+        }
+        val fileWriter = FileWriter(file, false)
+
+        fileWriter.write("")
+        file.writeBytes(publicKey)
+        fileWriter.close()
+
+    }
+    @OptIn(ExperimentalEncodingApi::class)
+    fun getPublicKey(username: String):PublicKey?{
+        val mainDir = File(subdir, username)
+        val file = File(mainDir, username+"Key.key")
+        val publicKeyBytes = Base64.decode(file.readBytes())
+        val keySpec = X509EncodedKeySpec(publicKeyBytes)
+        val keyFactory = KeyFactory.getInstance("RSA")
+        return keyFactory.generatePublic(keySpec)
     }
 
     fun storeSavedMessage(username: String, message: Any?, timestamp: String){
@@ -131,7 +162,7 @@ class FileHandler (private val context: Context){
         return ArrayList<SaveMessageModel>()
     }
 
-    fun storeHomeMessage(messageList: Map<String, Map<String, ArrayList<HashMap<String, String>>>>){
+    fun storeHomeMessage(messageList: Map<String, Map<String, ArrayList<HashMap<String, Any>>>>){
         val file = File(subdir, "messageList.json")
         if(!file.exists()){file.createNewFile()}
         val fileWriter = FileWriter(file,false)
@@ -140,7 +171,7 @@ class FileHandler (private val context: Context){
         fileWriter.write(jsonData)
         fileWriter.close()
     }
-    fun getHomeMessage() : Map<String, Map<String, ArrayList<HashMap<String, String>>>>{
+    fun getHomeMessage() : Map<String, Map<String, ArrayList<HashMap<String, Any>>>>{
         val file = File(subdir, "messageList.json")
         val gson = Gson()
         val jsonData = file.readText()
@@ -148,7 +179,11 @@ class FileHandler (private val context: Context){
         return gson.fromJson(jsonData, mapType)
     }
     fun storeChatMessage(username: String, message: Any?, timestamp: String){
-        val file = File(subdir, username+"DM.json")
+        val mainDir = File(subdir, username)
+        if(!mainDir.exists()){
+            mainDir.mkdir()
+        }
+        val file = File(mainDir, username+"DM.json")
         if(!file.exists()){
             file.createNewFile()
         }
@@ -160,7 +195,8 @@ class FileHandler (private val context: Context){
     }
 
     fun retrieveChatMessage(username: String) : ArrayList<SaveMessageModel>{
-        val file = File(subdir, username+"DM.json")
+        val mainDir = File(subdir, username)
+        val file = File(mainDir, username+"DM.json")
         val gson = Gson()
         if(file.exists()){
             val messageArray = ArrayList<SaveMessageModel>()

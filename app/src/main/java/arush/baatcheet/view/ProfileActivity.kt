@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.R
+import arush.baatcheet.presenter.HomeScreenPresenter
 import arush.baatcheet.presenter.ProfileSectionPresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 import coil.annotation.ExperimentalCoilApi
@@ -56,10 +57,10 @@ import coil.compose.rememberImagePainter
 
 class ProfileActivity : ComponentActivity() {
     private val reqCode = 1000
-    private lateinit var filePresenter : ProfileSectionPresenter
+    private lateinit var filePresenter : HomeScreenPresenter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        filePresenter = ProfileSectionPresenter(applicationContext)
+        filePresenter = HomeScreenPresenter.getInstance(applicationContext)
         setContent {
             BaatcheetTheme {
                 Surface(
@@ -91,7 +92,7 @@ class ProfileActivity : ComponentActivity() {
 }
 
 @Composable
-fun ProfilePage(filePresenter: ProfileSectionPresenter,callback: ()->(Unit)) {
+fun ProfilePage(filePresenter: HomeScreenPresenter,callback: ()->(Unit)) {
     val profileDetail = filePresenter.getProfileDetails()
     val context = LocalContext.current
 
@@ -241,7 +242,7 @@ fun SavedMessages(icon: ImageVector) {
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun ProfilePicture(profileSectionPresenter: ProfileSectionPresenter,modifier: Modifier) {
+fun ProfilePicture(profileSectionPresenter: HomeScreenPresenter,modifier: Modifier) {
     Image(
         painter = rememberImagePainter(data = profileSectionPresenter.getMyDp()),
         contentDescription = null,

@@ -187,7 +187,7 @@ fun AddContact() {
                                 }
                                 Log.d("qwertyL2", contactSelectionList.toString())
                             }
-                            /*Else Open Chat*/
+                            /* TODO */
                         }
                     }
                     Divider(color = Color(0xFFA3A3A3), modifier = Modifier

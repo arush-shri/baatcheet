@@ -11,8 +11,13 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import java.security.KeyFactory
+import java.security.PublicKey
+import java.security.spec.X509EncodedKeySpec
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class DatabaseHandler {
 
@@ -45,49 +50,52 @@ class DatabaseHandler {
             }
         }
     }
-    fun getPublicKey(toWhom: String, callback: (String) -> (Unit)){
+    @OptIn(ExperimentalEncodingApi::class)
+    fun getPublicKey(toWhom: String) = callbackFlow<PublicKey>{
         database.child(toWhom).child("pubKey").get().addOnSuccessListener {
-            callback(it.value.toString())
+            val publicKeyBytes = Base64.decode(it.value.toString())
+            val keySpec = X509EncodedKeySpec(publicKeyBytes)
+            val keyFactory = KeyFactory.getInstance("RSA")
+            trySend(keyFactory.generatePublic(keySpec))
         }
+        awaitClose {  }
     }
 
-    fun sendMessage(msg: String, toWhom: String, timeStamp:String){
-        //msg bhejte waqt ui me hi krle. Baad me
-        var message = ArrayList<HashMap<String, String>>()
+    fun sendMessage(msg: Any, toWhom: String, timeStamp:String){
+        var message = ArrayList<HashMap<String, Any>>()
         database.child(toWhom).child("messageList").child(userNumber).child("messages")
             .get().addOnSuccessListener {
                 if(it.value != null){
-                    message = it.value as ArrayList<HashMap<String, String>>
+                    message = it.value as ArrayList<HashMap<String, Any>>
+                    message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
+                    database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
                 }
-                message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
-                database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
+                else{
+                    message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
+                    database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
+                }
             }
     }
 
-    private fun getCombinedTimestamp(): String {
-        val currentDateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("ddMMyyyyHHmmss")
-        return currentDateTime.format(formatter)
-    }
-
-    fun recvMessage() : ArrayList<HashMap<String, String>>{
-        var messages = ArrayList<HashMap<String, String>>()
-        database.child(userNumber).child("messageList").child(userNumber).child("messages")
+    fun receiveMessage(fromWhom: String) = callbackFlow<ArrayList<HashMap<String, Any>>>{
+        var messages = ArrayList<HashMap<String, Any>>()
+        database.child(userNumber).child("messageList").child(fromWhom).child("messages")
             .get().addOnSuccessListener {
                 if(it.value != null){
-                    messages = it.value as ArrayList<HashMap<String, String>>
+                    messages = it.value as ArrayList<HashMap<String, Any>>
 //                    Log.d("qwerty", messages[0]["message"].toString())
+                    trySend(it.value as ArrayList<HashMap<String, Any>>)
                 }
             }
-        return messages
+        awaitClose{}
     }
 
-    fun getMessagesList() = callbackFlow<Map<String, Map<String, ArrayList<HashMap<String, String>>>>> {
+    fun getMessagesList() = callbackFlow<Map<String, Map<String, ArrayList<HashMap<String, Any>>>>> {
         val dbReference = database.child(userNumber).child("messageList")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
-                    val data = snapshot.value as Map<String, Map<String, ArrayList<HashMap<String, String>>>>
+                    val data = snapshot.value as Map<String, Map<String, ArrayList<HashMap<String, Any>>>>
 //                    Log.d("qwertyD", data.toString())
                     trySend(data).isSuccess
                 } else {

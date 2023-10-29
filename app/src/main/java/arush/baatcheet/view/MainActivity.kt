@@ -90,7 +90,11 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     var isSearchBarActive by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val homeScreenPresenter = HomeScreenPresenter(context)
+    val homeScreenPresenter = HomeScreenPresenter.getInstance(context)
+    LaunchedEffect(homeScreenPresenter){
+        homeScreenPresenter.getPublicKey("+919669620888")
+        homeScreenPresenter.sendMessage("+919669620888", "Hello")
+    }
 
     Box {
         Column {
@@ -187,9 +191,9 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
 
 @Composable
 fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
-    var chatsData by remember { mutableStateOf(emptyList<String>()) }
     var homeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
     var tempHomeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
+    var chatsData by remember { mutableStateOf(homeData.keys.toList()) }
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
             homeData = it
@@ -226,7 +230,7 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>,
+fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
                  homeScreenPresenter: HomeScreenPresenter, msgChange: Int) {
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
@@ -268,7 +272,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, String>>,
             )
             messages.last()["message"]?.let {
                 Text(
-                    text = it,
+                    text = it.toString(),           /*TODO*/
                     color = if(isSystemInDarkTheme()){
                         LightGray
                     }else{
