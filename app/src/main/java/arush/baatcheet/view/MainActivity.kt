@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.substring
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -91,14 +92,6 @@ fun MainScreen() {
     var isSearchBarActive by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val homeScreenPresenter = HomeScreenPresenter.getInstance(context)
-    LaunchedEffect(homeScreenPresenter){
-        homeScreenPresenter.getPublicKey("+919669620888")
-    }
-    LaunchedEffect(homeScreenPresenter){
-        homeScreenPresenter.receiveMessage("+919669620888").collect{
-            Log.d("qwertyMain", it.toString())
-        }
-    }
 
     Box {
         Column {
@@ -140,7 +133,8 @@ fun MainScreen() {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(28.dp)
             )
         }
     }
@@ -219,9 +213,7 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
                             ?.get("message")
                     ) {
                         ChatListItem(
-                            chat,
-                            it,
-                            homeScreenPresenter,
+                            chat, it, homeScreenPresenter,
                             it.size - tempHomeData[chat]?.get("messages")?.size!!
                         )
                     } else {
@@ -247,12 +239,17 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
     var msgCount by remember { mutableStateOf(msgChange) }
+    var contactDisplay = if(contact.length > 13) {
+        contact.substring(21)
+    }
+    else contact
+
     LaunchedEffect(homeScreenPresenter ){
         homeScreenPresenter.getDPLink(contact).collect{
             imageLink = it
         }
     }
-    image = if (!imageLink.isEmpty()) {
+    image = if (imageLink.isNotEmpty()) {
         rememberImagePainter(data = imageLink)
     } else {
         painterResource(id = R.drawable.no_dp_logo)
@@ -276,7 +273,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
         Spacer(modifier = Modifier.width(8.dp))
         Column {
             Text(
-                text = contact,
+                text = contactDisplay,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = MaterialTheme.colorScheme.secondary,
@@ -284,7 +281,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
             )
             messages.last()["message"]?.let {
                 Text(
-                    text = it.toString(),           /*TODO*/
+                    text = homeScreenPresenter.getDecrypted(it.toString()),
                     color = if(isSystemInDarkTheme()){
                         LightGray
                     }else{

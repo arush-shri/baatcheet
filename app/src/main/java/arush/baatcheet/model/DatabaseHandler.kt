@@ -121,6 +121,14 @@ class DatabaseHandler {
         awaitClose { }
     }
 
+    fun createGroup(contactList: Set<String>, groupName: String): String{
+        val uniqueID = database.push().key + groupName
+        for (contact in contactList){
+            database.child(contact).child("messageList").child(uniqueID).setValue(emptyList<HashMap<String, String>>())
+        }
+        return uniqueID
+    }
+
     private fun uploadData(imageUri: Uri, toWhom: String, timeStamp: String){
         val imageRef = storage.getReference("SentFile").child(userNumber)
         imageRef.putFile(imageUri)

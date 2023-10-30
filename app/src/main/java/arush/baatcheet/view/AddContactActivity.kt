@@ -33,9 +33,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -90,9 +92,10 @@ fun AddContact() {
     var textVisibility by remember { mutableStateOf(false) }
     var searchVisibility by remember { mutableStateOf(false) }
     var contactSelectionList = mutableSetOf<String>()
-    var searchText by remember { mutableStateOf("") }
+    var groupNameText by remember { mutableStateOf("") }
     val addContactPresenter = AddContactPresenter()
-    var contactList = addContactPresenter.getContactList(LocalContext.current.contentResolver)
+    val context = LocalContext.current
+    var contactList = addContactPresenter.getContactList(context.contentResolver)
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier
@@ -111,7 +114,7 @@ fun AddContact() {
             }
             else{
                 if(textVisibility){
-                    TextField(value = searchText, onValueChange = { searchText=it }, placeholder = {Text("Enter Group Name",
+                    TextField(value = groupNameText, onValueChange = { groupNameText=it }, placeholder = {Text("Enter Group Name",
                         modifier = Modifier.padding(start = 10.dp),color = if(isSystemInDarkTheme()){
                             Color.LightGray
                         }else{
@@ -177,15 +180,16 @@ fun AddContact() {
                         .background(color = bgColor)){
                         ContactDisplay(it.name, it.phoneNumber, addContactPresenter){
                             if(textVisibility){
-                                Log.d("qwertyL1", contactSelectionList.toString())
                                 isSelected = !isSelected
                                 if(it in contactSelectionList){
                                     contactSelectionList.remove(it)
                                 }
-                                else{
+                                else if(contactSelectionList.size < 5){
                                     contactSelectionList.add(it)
                                 }
-                                Log.d("qwertyL2", contactSelectionList.toString())
+                                else{
+                                    Toast.makeText(context, "Sorry you cannot add more than 5 people", Toast.LENGTH_SHORT).show()
+                                }
                             }
                             /* TODO */
                         }
@@ -193,6 +197,29 @@ fun AddContact() {
                     Divider(color = Color(0xFFA3A3A3), modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp))
+                }
+            }
+            if(textVisibility){
+                Box(modifier = Modifier.fillMaxSize()){
+                    FloatingActionButton(onClick = {
+                        if(contactSelectionList.size < 2){
+                            Toast.makeText(context, "Please select at least 2 contacts.", Toast.LENGTH_SHORT).show()
+                        }
+                        else if(groupNameText.length < 3){
+                            Toast.makeText(context, "The group name should have a minimum length of 3.", Toast.LENGTH_SHORT).show()
+                        }
+                        else {
+                            addContactPresenter.createGroup(contactSelectionList, groupNameText, context)
+                        }
+                    },
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
                 }
             }
         }
@@ -285,7 +312,7 @@ fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPr
                 .fillMaxSize(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically) {
-                Row(modifier = Modifier.clickable { sendInvite(number, context) }) {
+                Row(modifier = Modifier.clickable { addContactPresenter.sendInvite(number, context) }) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = "new group",
                         tint = if(isSystemInDarkTheme()){
                             Color(0xFF13B900)
@@ -305,18 +332,6 @@ fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPr
                 }
             }
         }
-    }
-}
-
-private fun sendInvite(number:String,context: Context){
-    val message = "Hey there! Chatting is more fun with friends. Join me on BaatCheet and let's catch up!"
-    val smsManager = context.getSystemService(SmsManager::class.java)
-    try {
-        smsManager.sendTextMessage(number, null, message, null, null)
-        Toast.makeText(context, "Invite Sent", Toast.LENGTH_SHORT).show()
-    }
-    catch (e: Exception){
-        Toast.makeText(context, "Unable to send invite ", Toast.LENGTH_SHORT).show()
     }
 }
 

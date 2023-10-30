@@ -1,8 +1,11 @@
 package arush.baatcheet.model
 
 import android.content.ContentResolver
+import android.content.Context
 import android.provider.ContactsContract
+import android.telephony.SmsManager
 import android.util.Log
+import android.widget.Toast
 
 class AddContactModel {
 
@@ -22,5 +25,17 @@ class AddContactModel {
             }
         }
         return contactList
+    }
+
+    fun sendInvite(number:String,context: Context){
+        val message = "Hey there! Chatting is more fun with friends. Join me on BaatCheet and let's catch up!"
+        val smsManager = context.getSystemService(SmsManager::class.java)
+        try {
+            smsManager.sendTextMessage(number, null, message, null, null)
+            Toast.makeText(context, "Invite Sent", Toast.LENGTH_SHORT).show()
+        }
+        catch (e: Exception){
+            Toast.makeText(context, "Unable to send invite ", Toast.LENGTH_SHORT).show()
+        }
     }
 }

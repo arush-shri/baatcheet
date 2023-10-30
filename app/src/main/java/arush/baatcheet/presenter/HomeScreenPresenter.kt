@@ -56,6 +56,10 @@ class HomeScreenPresenter(private val context : Context) {
             trySend(messageList)
         }
     }
+
+    fun getDecrypted(msg:String) : String{
+        return cryptography.decryptMessage(msg,privateKey)
+    }
     fun getMessageList(): Flow<Map<String, Map<String, ArrayList<HashMap<String, Any>>>>> {
         return connection.getMessagesList()
     }
