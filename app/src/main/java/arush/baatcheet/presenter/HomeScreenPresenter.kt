@@ -2,14 +2,15 @@ package arush.baatcheet.presenter
 
 import android.content.Context
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import arush.baatcheet.model.Cryptography
 import arush.baatcheet.model.DatabaseHandler
 import arush.baatcheet.model.FileHandler
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.sync.Semaphore
 import java.security.PublicKey
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -20,7 +21,6 @@ class HomeScreenPresenter(private val context : Context) {
     private val cryptography = Cryptography()
     private val privateKey = fileHandler.getPrivateKey()
     private lateinit var publicKey: PublicKey
-    private val publicKeySemaphore = Semaphore(0)
 
     companion object {
         private var instance: HomeScreenPresenter? = null
@@ -36,21 +36,22 @@ class HomeScreenPresenter(private val context : Context) {
     suspend fun getPublicKey(username: String){
         connection.getPublicKey(username).collect{
             publicKey = it
-            publicKeySemaphore.release()
         }
     }
     suspend fun sendMessage(username: String, message:String){
-        publicKeySemaphore.acquire()
+        if(!this::publicKey.isInitialized){
+            delay(2000)
+        }
         val timeStamp = getCombinedTimestamp()
         val encryptedMessage = cryptography.encryptMessage(message, publicKey)
-        connection.sendMessage(encryptedMessage,username, timeStamp)
+        connection.sendMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),username, timeStamp)
     }
 
     fun receiveMessage(username: String) = callbackFlow<ArrayList<HashMap<String, String>>>{
         connection.receiveMessage(username).collect{
             val messageList = ArrayList<HashMap<String,String>>()
             for (message in it){
-                messageList.add(hashMapOf("timestamp" to message["timestamp"].toString(), "message" to cryptography.decryptMessage(message["message"],privateKey)))
+                messageList.add(hashMapOf("timestamp" to message["timestamp"].toString(), "message" to cryptography.decryptMessage(message["message"].toString(),privateKey)))
             }
             trySend(messageList)
         }

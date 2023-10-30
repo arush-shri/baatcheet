@@ -96,7 +96,6 @@ class FileHandler (private val context: Context){
         }
         val fileWriter = FileWriter(privateFile, false)
 
-        fileWriter.write("")
         privateFile.writeBytes(privateKey)
         fileWriter.close()
     }
@@ -173,9 +172,16 @@ class FileHandler (private val context: Context){
     }
     fun getHomeMessage() : Map<String, Map<String, ArrayList<HashMap<String, Any>>>>{
         val file = File(subdir, "messageList.json")
+        if(!file.exists()){
+            file.createNewFile()
+            return emptyMap()
+        }
         val gson = Gson()
         val jsonData = file.readText()
         val mapType = object : TypeToken<Map<String, Map<String, ArrayList<HashMap<String, String>>>>>() {}.type
+        if(jsonData.isEmpty()){
+            return emptyMap()
+        }
         return gson.fromJson(jsonData, mapType)
     }
     fun storeChatMessage(username: String, message: Any?, timestamp: String){

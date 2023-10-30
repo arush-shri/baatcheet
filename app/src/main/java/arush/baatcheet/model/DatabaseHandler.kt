@@ -61,19 +61,15 @@ class DatabaseHandler {
         awaitClose {  }
     }
 
-    fun sendMessage(msg: Any, toWhom: String, timeStamp:String){
-        var message = ArrayList<HashMap<String, Any>>()
+    fun sendMessage(msg: String, toWhom: String, timeStamp:String){
+        var message = ArrayList<HashMap<String, String>>()
         database.child(toWhom).child("messageList").child(userNumber).child("messages")
             .get().addOnSuccessListener {
                 if(it.value != null){
-                    message = it.value as ArrayList<HashMap<String, Any>>
-                    message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
-                    database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
+                    message = it.value as ArrayList<HashMap<String, String>>
                 }
-                else{
-                    message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
-                    database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
-                }
+                message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
+                database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
             }
     }
 

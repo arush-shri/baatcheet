@@ -93,7 +93,11 @@ fun MainScreen() {
     val homeScreenPresenter = HomeScreenPresenter.getInstance(context)
     LaunchedEffect(homeScreenPresenter){
         homeScreenPresenter.getPublicKey("+919669620888")
-        homeScreenPresenter.sendMessage("+919669620888", "Hello")
+    }
+    LaunchedEffect(homeScreenPresenter){
+        homeScreenPresenter.receiveMessage("+919669620888").collect{
+            Log.d("qwertyMain", it.toString())
+        }
     }
 
     Box {
@@ -204,26 +208,34 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
 //        list aane k baad indi file me store ka fun chala        remove vala bhi individual me
     }
 
-    LazyColumn(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.Start,
-    ) {
-        items(chatsData) { chat ->
-            homeData[chat]?.get("messages")?.let {
-                if(it.last()["message"] != tempHomeData[chat]?.get("messages")?.last()?.get("message")){
-                    ChatListItem(chat, it, homeScreenPresenter, it.size- tempHomeData[chat]?.get("messages")?.size!!)
-                }
-                else{
-                    ChatListItem(chat, it, homeScreenPresenter, 0)
+    if(homeData.isNotEmpty()){
+        LazyColumn(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            items(chatsData) { chat ->
+                homeData[chat]?.get("messages")?.let {
+                    if (it.last()["message"] != tempHomeData[chat]?.get("messages")?.last()
+                            ?.get("message")
+                    ) {
+                        ChatListItem(
+                            chat,
+                            it,
+                            homeScreenPresenter,
+                            it.size - tempHomeData[chat]?.get("messages")?.size!!
+                        )
+                    } else {
+                        ChatListItem(chat, it, homeScreenPresenter, 0)
+                    }
+
                 }
 
+                Divider(
+                    color = Gray,
+                    thickness = 1.dp,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-
-            Divider(
-                color = Gray,
-                thickness = 1.dp,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }
