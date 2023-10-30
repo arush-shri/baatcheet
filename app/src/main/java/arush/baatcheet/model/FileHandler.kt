@@ -170,7 +170,7 @@ class FileHandler (private val context: Context){
         fileWriter.write(jsonData)
         fileWriter.close()
     }
-    fun getHomeMessage() : Map<String, Map<String, ArrayList<HashMap<String, String>>>>{
+    fun getHomeMessage() : Map<String, Map<String, ArrayList<HashMap<String, Any>>>>{
         val file = File(subdir, "messageList.json")
         if(!file.exists()){
             file.createNewFile()
@@ -178,7 +178,7 @@ class FileHandler (private val context: Context){
         }
         val gson = Gson()
         val jsonData = file.readText()
-        val mapType = object : TypeToken<Map<String, Map<String, ArrayList<HashMap<String, String>>>>>() {}.type
+        val mapType = object : TypeToken<Map<String, Map<String, ArrayList<HashMap<String, Any>>>>>() {}.type
         if(jsonData.isEmpty()){
             return emptyMap()
         }
