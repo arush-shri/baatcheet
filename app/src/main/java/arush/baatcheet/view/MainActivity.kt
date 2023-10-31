@@ -190,12 +190,12 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
 @Composable
 fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     var homeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
-    var tempHomeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
+    var tempHomeData by remember { mutableStateOf(homeData) }
     var chatsData by remember { mutableStateOf(homeData.keys.toList()) }
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
+            tempHomeData = homeData
             homeData = it
-            tempHomeData = homeScreenPresenter.getMessageListFile()
             homeScreenPresenter.setMessageList(it)
             chatsData = homeData.keys.toList()
         }
@@ -212,10 +212,15 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
                     if (it.last()["message"] != tempHomeData[chat]?.get("messages")?.last()
                             ?.get("message")
                     ) {
-                        ChatListItem(
-                            chat, it, homeScreenPresenter,
-                            it.size - tempHomeData[chat]?.get("messages")?.size!!
-                        )
+                        if(chat in tempHomeData){
+                            ChatListItem(
+                                chat, it, homeScreenPresenter,
+                                it.size - tempHomeData[chat]?.get("messages")?.size!!
+                            )
+                        }
+                        else {
+                            ChatListItem(chat, it, homeScreenPresenter, it.size)
+                        }
                     } else {
                         ChatListItem(chat, it, homeScreenPresenter, 0)
                     }
@@ -254,7 +259,6 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
     } else {
         painterResource(id = R.drawable.no_dp_logo)
     }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
