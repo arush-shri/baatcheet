@@ -38,4 +38,22 @@ class AddContactModel {
             Toast.makeText(context, "Unable to send invite ", Toast.LENGTH_SHORT).show()
         }
     }
+
+    fun contactName(username: String, contentResolver: ContentResolver):String?{
+        val cursor = contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            null, null, null, null)
+        cursor?.use {
+            val nameIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            val phoneNumberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+            while (it.moveToNext()) {
+                val phoneNumber = it.getString(phoneNumberIndex).replace(" ", "")
+                if(phoneNumber == username){
+                    return it.getString(nameIndex)
+                }
+            }
+        }
+        return null
+    }
 }

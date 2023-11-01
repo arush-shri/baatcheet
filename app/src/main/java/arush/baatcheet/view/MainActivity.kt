@@ -1,5 +1,6 @@
 package arush.baatcheet.view
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -192,6 +193,7 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     var homeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
     var tempHomeData by remember { mutableStateOf(homeData) }
     var chatsData by remember { mutableStateOf(homeData.keys.toList()) }
+    val context = LocalContext.current
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
             tempHomeData = homeData
@@ -215,14 +217,14 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
                         if(chat in tempHomeData){
                             ChatListItem(
                                 chat, it, homeScreenPresenter,
-                                it.size - tempHomeData[chat]?.get("messages")?.size!!
+                                it.size - tempHomeData[chat]?.get("messages")?.size!!, context
                             )
                         }
                         else {
-                            ChatListItem(chat, it, homeScreenPresenter, it.size)
+                            ChatListItem(chat, it, homeScreenPresenter, it.size, context)
                         }
                     } else {
-                        ChatListItem(chat, it, homeScreenPresenter, 0)
+                        ChatListItem(chat, it, homeScreenPresenter, 0, context)
                     }
 
                 }
@@ -240,14 +242,18 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
-                 homeScreenPresenter: HomeScreenPresenter, msgChange: Int) {
+                 homeScreenPresenter: HomeScreenPresenter, msgChange: Int, context: Context) {
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
     var msgCount by remember { mutableStateOf(msgChange) }
-    var contactDisplay = if(contact.length > 13) {
+    var contactDisplay : String = if(contact.length > 13) {
         contact.substring(21)
     }
-    else contact
+    else {
+        val name = homeScreenPresenter.getContactName(contact, context.contentResolver)
+        if(name.isNullOrEmpty()) contact
+        else name
+    }
 
     LaunchedEffect(homeScreenPresenter ){
         homeScreenPresenter.getDPLink(contact).collect{

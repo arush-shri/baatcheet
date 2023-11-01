@@ -1,9 +1,11 @@
 package arush.baatcheet.presenter
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
+import arush.baatcheet.model.AddContactModel
 import arush.baatcheet.model.Cryptography
 import arush.baatcheet.model.DatabaseHandler
 import arush.baatcheet.model.FileHandler
@@ -86,6 +88,10 @@ class HomeScreenPresenter(private val context : Context) {
     fun setMyDP(image: Uri){
         DatabaseHandler().updateDP(image)
         fileHandler.storeDP(image)
+    }
+
+    fun getContactName(username: String, contentResolver: ContentResolver):String?{
+        return AddContactModel().contactName(username, contentResolver)
     }
 
     private fun getCombinedTimestamp(): String {
