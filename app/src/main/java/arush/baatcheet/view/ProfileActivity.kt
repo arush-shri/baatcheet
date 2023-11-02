@@ -56,7 +56,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 
 class ProfileActivity : ComponentActivity() {
-    private val reqCode = 1000
+
     private lateinit var filePresenter : HomeScreenPresenter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,24 +67,7 @@ class ProfileActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ProfilePage(filePresenter){
-                        changeDP()
-                    }
-                }
-            }
-        }
-    }
-    private fun changeDP(){
-        val intent = Intent(Intent.ACTION_PICK)
-        intent.data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        startActivityForResult(intent, reqCode)
-    }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if(resultCode== RESULT_OK){
-            if(requestCode == reqCode){
-                if (data != null) {
-                    filePresenter.setMyDP(data.data!!)
+                    ProfilePage(filePresenter)
                 }
             }
         }
@@ -92,7 +75,7 @@ class ProfileActivity : ComponentActivity() {
 }
 
 @Composable
-fun ProfilePage(filePresenter: HomeScreenPresenter,callback: ()->(Unit)) {
+fun ProfilePage(filePresenter: HomeScreenPresenter) {
     val profileDetail = filePresenter.getProfileDetails()
     val context = LocalContext.current
 
@@ -117,7 +100,6 @@ fun ProfilePage(filePresenter: HomeScreenPresenter,callback: ()->(Unit)) {
             ProfilePicture(filePresenter, modifier = Modifier
                 .size(200.dp) //Pic Size
                 .clip(CircleShape)
-                .clickable { callback() }
                 .align(Alignment.CenterHorizontally)
             )
 
@@ -159,8 +141,14 @@ fun ProfilePage(filePresenter: HomeScreenPresenter,callback: ()->(Unit)) {
                 .height(2.dp), color = Color.Gray)
 
             Spacer(modifier = Modifier.height(24.dp))
+
             Button(
-                onClick = { /*OnClickLogic Here*/ },
+                onClick = {
+                    val intent = Intent(context, EditProfileActivity::class.java)
+                    intent.putExtra("phone", profileDetail[1])
+                    intent.putExtra("name", profileDetail[0])
+                    context.startActivity(intent)
+                },
                 modifier = Modifier
                     .border(2.dp, Color(0xFF808080),
                         shape = RoundedCornerShape(8.dp)),
@@ -171,7 +159,7 @@ fun ProfilePage(filePresenter: HomeScreenPresenter,callback: ()->(Unit)) {
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = "Edit Profile",
+                    text = "EDIT PROFILE",
                     color = MaterialTheme.colorScheme.tertiary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,

@@ -94,6 +94,11 @@ class HomeScreenPresenter(private val context : Context) {
         return AddContactModel().contactName(username, contentResolver)
     }
 
+    fun editProfile(username: String,phoneNumber: String){
+        fileHandler.storeProfileDetails(username,phoneNumber)
+        connection.EditProfile(username,phoneNumber,fileHandler.getMyDP())
+    }
+
     private fun getCombinedTimestamp(): String {
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("ddMMyyyyHHmmss")
