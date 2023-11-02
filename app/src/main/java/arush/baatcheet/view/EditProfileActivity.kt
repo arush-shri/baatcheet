@@ -109,6 +109,7 @@ fun EditProfile(filePresenter: HomeScreenPresenter, phoneNum:String, name:String
     var name by remember { mutableStateOf(name) }
     var number by remember { mutableStateOf(phoneNum) }
     var editable by remember { mutableStateOf(true) }
+    var imageEdit by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -145,7 +146,10 @@ fun EditProfile(filePresenter: HomeScreenPresenter, phoneNum:String, name:String
                         bottom.linkTo(profile.bottom, margin = 5.dp)
                         end.linkTo(profile.end, margin = 20.dp)
                     }.clip(shape = CircleShape)
-                    .clickable { callback() })
+                    .clickable {
+                        callback()
+                        imageEdit = true
+                    })
                 {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = "New pic",
                         tint = Color(0xFFFF6D00), modifier = Modifier.size(60.dp)
@@ -186,8 +190,7 @@ fun EditProfile(filePresenter: HomeScreenPresenter, phoneNum:String, name:String
 
             ElevatedButton(onClick = {
                 editable = false
-                filePresenter.editProfile(name,number)
-                                     },
+                filePresenter.editProfile(name,number, imageEdit) },
                 modifier = Modifier
                     .border(2.dp, Color(0xFF808080),
                         shape = RoundedCornerShape(8.dp)),

@@ -94,9 +94,14 @@ class HomeScreenPresenter(private val context : Context) {
         return AddContactModel().contactName(username, contentResolver)
     }
 
-    fun editProfile(username: String,phoneNumber: String){
+    fun editProfile(username: String,phoneNumber: String, image:Boolean){
         fileHandler.storeProfileDetails(username,phoneNumber)
-        connection.EditProfile(username,phoneNumber,fileHandler.getMyDP())
+        if (image) {
+            connection.EditProfile(username,phoneNumber,fileHandler.getMyDP())
+        }
+        else{
+            connection.EditProfile(username,phoneNumber,null)
+        }
     }
 
     private fun getCombinedTimestamp(): String {

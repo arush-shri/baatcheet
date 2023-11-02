@@ -128,16 +128,18 @@ class DatabaseHandler {
         }
         return uniqueID
     }
-    fun EditProfile(username: String,phoneNumber: String, imageUri: Uri){
+    fun EditProfile(username: String,phoneNumber: String, imageUri: Uri?){
         val imageRef = storage.getReference("DP").child(phoneNumber + "DP")
-        imageRef.putFile(imageUri)
-            .addOnSuccessListener {
-                imageRef.downloadUrl.addOnSuccessListener { url ->
-                    val imageUrl = url.toString()
-                    database.child(phoneNumber).child("profileDPLink").setValue(imageUrl)
-                    database.child(phoneNumber).child("name").setValue(imageUrl)
+        if (imageUri != null) {
+            imageRef.putFile(imageUri)
+                .addOnSuccessListener {
+                    imageRef.downloadUrl.addOnSuccessListener { url ->
+                        val imageUrl = url.toString()
+                        database.child(phoneNumber).child("profileDPLink").setValue(imageUrl)
+                    }
                 }
-            }
+        }
+        database.child(phoneNumber).child("name").setValue(username)
     }
 
     private fun uploadData(imageUri: Uri, toWhom: String, timeStamp: String){
