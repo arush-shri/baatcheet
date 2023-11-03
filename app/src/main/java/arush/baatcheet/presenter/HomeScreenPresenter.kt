@@ -41,8 +41,8 @@ class HomeScreenPresenter(private val context : Context) {
         }
     }
     suspend fun sendMessage(username: String, message:String){
-        if(!this::publicKey.isInitialized){
-            delay(2000)
+        while (!this::publicKey.isInitialized) {
+            delay(1000)
         }
         val timeStamp = getCombinedTimestamp()
         val encryptedMessage = cryptography.encryptMessage(message, publicKey)
