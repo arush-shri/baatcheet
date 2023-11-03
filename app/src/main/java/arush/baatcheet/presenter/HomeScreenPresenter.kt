@@ -53,10 +53,20 @@ class HomeScreenPresenter(private val context : Context) {
         connection.receiveMessage(username).collect{
             val messageList = ArrayList<HashMap<String,String>>()
             for (message in it){
+                fileHandler.storeChatMessage(username, message["message"], message["timestamp"].toString())
                 messageList.add(hashMapOf("timestamp" to message["timestamp"].toString(), "message" to cryptography.decryptMessage(message["message"].toString(),privateKey)))
             }
             trySend(messageList)
         }
+    }
+
+    fun retrieveMessage(username: String): ArrayList<HashMap<String, String>>{
+        val messageList = fileHandler.retrieveChatMessage(username)
+        var messages = ArrayList<HashMap<String,String>>()
+        for (message in messageList){
+            messages.add(hashMapOf("timestamp" to message.timestamp, "message" to cryptography.decryptMessage(message.message.toString(),privateKey)))
+        }
+        return messages
     }
 
     fun getDecrypted(msg:String) : String{

@@ -75,15 +75,23 @@ class DatabaseHandler {
 
     fun receiveMessage(fromWhom: String) = callbackFlow<ArrayList<HashMap<String, Any>>>{
         var messages = ArrayList<HashMap<String, Any>>()
-        database.child(userNumber).child("messageList").child(fromWhom).child("messages")
-            .get().addOnSuccessListener {
-                if(it.value != null){
-                    messages = it.value as ArrayList<HashMap<String, Any>>
-//                    Log.d("qwerty", messages[0]["message"].toString())
-                    trySend(it.value as ArrayList<HashMap<String, Any>>)
+        val dbRef = database.child(userNumber).child("messageList").child(fromWhom).child("messages")
+        val valueEventListener = object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if(snapshot.exists()){
+                    messages = snapshot.value as ArrayList<HashMap<String, Any>>
+                    trySend(messages)
                 }
             }
-        awaitClose{}
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+
+        }
+        dbRef.addValueEventListener(valueEventListener)
+        awaitClose{
+            dbRef.removeEventListener(valueEventListener)
+        }
     }
 
     fun getMessagesList() = callbackFlow<Map<String, Map<String, ArrayList<HashMap<String, Any>>>>> {
