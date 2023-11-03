@@ -33,7 +33,11 @@ class Cryptography {
         val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
         cipher.init(Cipher.DECRYPT_MODE, privateKey)
         val encryptedBytes = Base64.decode(encryptedText, Base64.DEFAULT)
-        val decryptedBytes = cipher.doFinal(encryptedBytes)
-        return String(decryptedBytes)
+        return try{
+            val decryptedBytes = cipher.doFinal(encryptedBytes)
+            String(decryptedBytes)
+        } catch (e: Exception){
+            "Error with decryption key"
+        }
     }
 }

@@ -25,10 +25,12 @@ class AddContactPresenter {
         addContactModel.sendInvite(number,context)
     }
 
-    suspend fun createGroup(contact: String, name: String, context: Context){
-        val groupName = connection.createGroup(contact, name)
-        connection.getPublicKey(name).collect{
-            FileHandler(context).storeGroup(groupName, contact, it)
+    suspend fun createGroup(contactList: Set<String>, name: String, context: Context){
+        for (contact in contactList){
+            val groupName = connection.createGroup(contact, name)
+            connection.getPublicKey(name).collect{
+                FileHandler(context).storeGroup(groupName, contact, it)
+            }
         }
     }
 }

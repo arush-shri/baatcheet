@@ -69,6 +69,8 @@ import arush.baatcheet.presenter.AddContactPresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class AddContactActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -199,19 +201,21 @@ fun AddContact() {
                         .height(1.dp))
                 }
             }
-            if(textVisibility){
-                Box(modifier = Modifier.fillMaxSize()){
-                    FloatingActionButton(onClick = {
-                        if(contactSelectionList.size < 2){
-                            Toast.makeText(context, "Please select at least 2 contacts.", Toast.LENGTH_SHORT).show()
-                        }
-                        else if(groupNameText.length < 3){
-                            Toast.makeText(context, "The group name should have a minimum length of 3.", Toast.LENGTH_SHORT).show()
-                        }
-                        else {
-                            addContactPresenter.createGroup(contactSelectionList, groupNameText, context)
-                        }
-                    },
+                if(textVisibility){
+                    Box(modifier = Modifier.fillMaxSize()){
+                        FloatingActionButton(onClick = {
+                            if(contactSelectionList.size < 2){
+                                Toast.makeText(context, "Please select at least 2 contacts.", Toast.LENGTH_SHORT).show()
+                            }
+                            else if(groupNameText.length < 3){
+                                Toast.makeText(context, "The group name should have a minimum length of 3.", Toast.LENGTH_SHORT).show()
+                            }
+                            else {
+                                GlobalScope.launch {
+                                    addContactPresenter.createGroup(contactSelectionList, groupNameText, context)
+                                }
+                            }
+                        },
                         modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
                         Icon(
                             imageVector = Icons.Filled.Check,

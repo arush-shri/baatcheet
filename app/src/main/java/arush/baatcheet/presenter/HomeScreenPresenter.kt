@@ -35,6 +35,9 @@ class HomeScreenPresenter(private val context : Context) {
         }
     }
 
+    fun getMyNum():String{
+        return connection.getMyNum()
+    }
     suspend fun getPublicKey(username: String){
         connection.getPublicKey(username).collect{
             publicKey = it
@@ -49,14 +52,14 @@ class HomeScreenPresenter(private val context : Context) {
         connection.sendMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),username, timeStamp)
     }
 
-    fun receiveMessage(username: String) = callbackFlow<ArrayList<HashMap<String, String>>>{
+    fun receiveMessage(username: String) = callbackFlow<Boolean>{
         connection.receiveMessage(username).collect{
             val messageList = ArrayList<HashMap<String,String>>()
             for (message in it){
                 fileHandler.storeChatMessage(username, message["message"], message["timestamp"].toString())
                 messageList.add(hashMapOf("timestamp" to message["timestamp"].toString(), "message" to cryptography.decryptMessage(message["message"].toString(),privateKey)))
             }
-            trySend(messageList)
+            trySend(true)
         }
     }
 
@@ -67,6 +70,10 @@ class HomeScreenPresenter(private val context : Context) {
             messages.add(hashMapOf("timestamp" to message.timestamp, "message" to cryptography.decryptMessage(message.message.toString(),privateKey)))
         }
         return messages
+    }
+
+    fun saveMessage(username: String, message: Any?, timestamp: String) {
+        fileHandler.storeSavedMessage(username, message, timestamp)
     }
 
     fun getDecrypted(msg:String) : String{

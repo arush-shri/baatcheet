@@ -268,7 +268,14 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { msgCount = 0 }
+            .clickable {
+                val intent = Intent(context, ChatActivity::class.java)
+                intent.putExtra("contactName", contactDisplay)
+                intent.putExtra("contactNumber", contact)
+                intent.putExtra("imageLink", imageLink)
+                context.startActivity(intent)
+                msgCount = 0
+            }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

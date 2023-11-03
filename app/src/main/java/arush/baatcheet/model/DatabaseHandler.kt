@@ -42,6 +42,10 @@ class DatabaseHandler {
                 }
         }
     }
+
+    fun getMyNum():String{
+        return userNumber
+    }
     fun updateDP(imageUri: Uri){
         val imageRef = storage.getReference("DP").child(userNumber + "DP")
         imageRef.putFile(imageUri).addOnSuccessListener {
