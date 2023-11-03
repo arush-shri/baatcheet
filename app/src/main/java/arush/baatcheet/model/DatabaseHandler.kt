@@ -129,11 +129,9 @@ class DatabaseHandler {
         awaitClose { }
     }
 
-    fun createGroup(contactList: Set<String>, groupName: String): String{
+    fun createGroup(contact: String, groupName: String): String{
         val uniqueID = database.push().key + groupName
-        for (contact in contactList){
-            database.child(contact).child("messageList").child(uniqueID).setValue(emptyList<HashMap<String, String>>())
-        }
+        database.child(contact).child("messageList").child(uniqueID).setValue(emptyList<HashMap<String, String>>())
         return uniqueID
     }
     fun EditProfile(username: String,phoneNumber: String, imageUri: Uri?){

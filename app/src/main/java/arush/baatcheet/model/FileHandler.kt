@@ -185,25 +185,34 @@ class FileHandler (private val context: Context){
         return gson.fromJson(jsonData, mapType)
     }
 
-    fun storeGroup(name: String, contactList: Set<String>){
+    fun storeGroup(name: String, contact: String, publicKey:PublicKey){
         var storedList = getHomeMessage().toMutableMap()
         storedList[name] = mapOf("messages" to ArrayList(listOf(HashMap())))
+        storeHomeMessage(storedList)
+
         val file = File(subdir, "$name.json")
         if(!file.exists()){
             file.createNewFile()
         }
         val gson = Gson()
-        val jsonData = gson.toJson(contactList.toList())
-        val fileWriter = FileWriter(file, false)
+        val detail = GroupDetailsModel(contact, publicKey)
+        val jsonData = gson.toJson(detail)
+        val fileWriter = FileWriter(file, true)
         fileWriter.write(jsonData)
         fileWriter.close()
     }
 
-    fun getGroupContacts(name: String): List<String>{
+    fun getGroupContacts(name: String): List<GroupDetailsModel>{
         val file = File(subdir, "$name.json")
         val gson = Gson()
         val jsonData = file.readText()
-        return gson.fromJson<List<String>>(jsonData, List::class.java)
+        var contactList = mutableListOf<GroupDetailsModel>()
+        val jsonObjects = jsonData.split("}")
+        for (contact in jsonObjects){
+            val orgContact = gson.fromJson("$contact}", GroupDetailsModel::class.java)
+            contactList.add(orgContact)
+        }
+        return contactList
     }
     fun storeChatMessage(username: String, message: Any?, timestamp: String){
         val mainDir = File(subdir, username)

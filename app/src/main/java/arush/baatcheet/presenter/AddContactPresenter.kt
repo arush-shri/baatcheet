@@ -7,6 +7,7 @@ import arush.baatcheet.model.ContactItem
 import arush.baatcheet.model.DatabaseHandler
 import arush.baatcheet.model.FileHandler
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 
 class AddContactPresenter {
 
@@ -24,8 +25,10 @@ class AddContactPresenter {
         addContactModel.sendInvite(number,context)
     }
 
-    fun createGroup(contactList: Set<String>, name: String, context: Context){
-        val groupName = connection.createGroup(contactList, name)
-        FileHandler(context).storeGroup(groupName, contactList)
+    suspend fun createGroup(contact: String, name: String, context: Context){
+        val groupName = connection.createGroup(contact, name)
+        connection.getPublicKey(name).collect{
+            FileHandler(context).storeGroup(groupName, contact, it)
+        }
     }
 }
