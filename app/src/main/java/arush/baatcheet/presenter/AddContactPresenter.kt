@@ -33,4 +33,8 @@ class AddContactPresenter {
             }
         }
     }
+
+    fun addContact(username: String, context: Context){
+        FileHandler(context).addContact(username)
+    }
 }

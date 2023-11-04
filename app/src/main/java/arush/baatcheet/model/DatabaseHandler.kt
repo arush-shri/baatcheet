@@ -84,7 +84,7 @@ class DatabaseHandler {
         val dbRef = database.child(userNumber).child("messageList").child(fromWhom).child("messages")
         val valueEventListener = object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
-                if(snapshot.exists()){
+                if(snapshot.exists() && snapshot.value != null){
                     messages = snapshot.value as ArrayList<HashMap<String, Any>>
                     trySend(messages)
                 }
@@ -122,8 +122,8 @@ class DatabaseHandler {
             dbReference.removeEventListener(valueEventListener)
         }
     }
-    fun removeList(keyList: List<String>){
-        database.child(userNumber).child("messageList").setValue(emptyMap<String, Map<String, ArrayList<HashMap<String, String>>>>())
+    fun removeList(username: String){
+        database.child(userNumber).child("messageList").child(username).child("messages").setValue(null)
     }
 
     fun getDPLink(username: String)= callbackFlow<String>{

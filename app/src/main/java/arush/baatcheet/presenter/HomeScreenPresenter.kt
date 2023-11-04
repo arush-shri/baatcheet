@@ -23,6 +23,7 @@ class HomeScreenPresenter(private val context : Context) {
     private val cryptography = Cryptography()
     private val privateKey = fileHandler.getPrivateKey()
     private lateinit var publicKey: PublicKey
+    val myNum = connection.getMyNum()
 
     companion object {
         private var instance: HomeScreenPresenter? = null
@@ -33,10 +34,6 @@ class HomeScreenPresenter(private val context : Context) {
             }
             return instance!!
         }
-    }
-
-    fun getMyNum():String{
-        return connection.getMyNum()
     }
     suspend fun getPublicKey(username: String){
         connection.getPublicKey(username).collect{
@@ -49,7 +46,10 @@ class HomeScreenPresenter(private val context : Context) {
         }
         val timeStamp = getCombinedTimestamp()
         val encryptedMessage = cryptography.encryptMessage(message, publicKey)
-        connection.sendMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),username, timeStamp)
+        if(username != myNum){
+            connection.sendMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),username, timeStamp)
+        }
+        fileHandler.storeChatMessage(username, Base64.encodeToString(encryptedMessage, Base64.DEFAULT), timeStamp)
     }
 
     fun receiveMessage(username: String) = callbackFlow<Boolean>{
@@ -88,8 +88,8 @@ class HomeScreenPresenter(private val context : Context) {
     fun setMessageList(messageList: Map<String, Map<String, ArrayList<HashMap<String, Any>>>>){
         fileHandler.storeHomeMessage(messageList)
     }
-    fun removeMessages(keyList: List<String>){
-        connection.removeList(keyList)
+    fun removeMessages(number: String){
+        connection.removeList(number)
     }
     fun getMyDp(): Uri {
         return fileHandler.getMyDP()

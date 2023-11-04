@@ -1,5 +1,6 @@
 package arush.baatcheet.view
 
+import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -45,6 +46,7 @@ import arush.baatcheet.R
 import arush.baatcheet.model.FileHandler
 import arush.baatcheet.presenter.SavedMessagePresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
+import java.util.Locale
 
 class SavedMessagesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,20 +110,28 @@ fun MessageCard(username: String, message: Any?, timeStamp: String){
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.onTertiary)) {
             Row (modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 2.dp)
+                .padding(top = 8.dp, start = 8.dp, end = 8.dp)
                 , horizontalArrangement = Arrangement.SpaceBetween){
                 Text(text = username,
                     style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 15.sp))
-                Text(text = timeStamp,
+                Text(text = formatDateTime(timeStamp),
                     style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 15.sp))
             }
         Text(text = message.toString(),
             style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))), fontSize = 18.sp),
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            maxLines = 5)
     }
 }
 
+private fun formatDateTime(timeStamp: String): String{
+    val inputFormat = SimpleDateFormat("ddMMyyyyHHmmss", Locale.getDefault())
+    val outputFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+
+    val date = inputFormat.parse(timeStamp)
+    return outputFormat.format(date)
+}
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview3() {

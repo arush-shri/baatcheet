@@ -197,8 +197,8 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
             tempHomeData = homeData
-            homeData = it
-            homeScreenPresenter.setMessageList(it)
+            homeData = homeData+it
+            homeScreenPresenter.setMessageList(homeData)
             chatsData = homeData.keys.toList()
         }
 //        list aane k baad indi file me store ka fun chala        remove vala bhi individual me

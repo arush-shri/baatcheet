@@ -3,6 +3,7 @@ package arush.baatcheet.model
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import arush.baatcheet.R
@@ -185,6 +186,11 @@ class FileHandler (private val context: Context){
         return gson.fromJson(jsonData, mapType)
     }
 
+    fun addContact(username: String){
+        var storedList = getHomeMessage().toMutableMap()
+        storedList[username] = mapOf("messages" to ArrayList(listOf(HashMap())))
+        storeHomeMessage(storedList)
+    }
     fun storeGroup(name: String, contact: String, publicKey:PublicKey){
         var storedList = getHomeMessage().toMutableMap()
         storedList[name] = mapOf("messages" to ArrayList(listOf(HashMap())))
@@ -237,7 +243,8 @@ class FileHandler (private val context: Context){
         if(file.exists()){
             val messageArray = ArrayList<SaveMessageModel>()
             val jsonData = file.readText()
-            val jsonObjects = jsonData.split("}")
+            val jsonObjects = jsonData.split("}").toMutableList()
+            jsonObjects.removeLast()
             for (message in jsonObjects){
                 val orgMessage = gson.fromJson("$message}", SaveMessageModel::class.java)
                 messageArray.add(orgMessage)

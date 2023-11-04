@@ -2,6 +2,7 @@ package arush.baatcheet.view
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -44,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +58,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.R
@@ -69,6 +73,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
@@ -108,8 +113,9 @@ fun ChatScreen(
 ) {
     val context = LocalContext.current
     val presenter = HomeScreenPresenter.getInstance(context)
-    val myNumber = presenter.getMyNum()
     var messageList by remember { mutableStateOf(presenter.retrieveMessage(number)) }
+    val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(true) {
         presenter.getPublicKey(number)
@@ -118,7 +124,13 @@ fun ChatScreen(
         presenter.receiveMessage(number).collect{
             if(it){
                 messageList = presenter.retrieveMessage(number)
+                presenter.removeMessages(number)
             }
+        }
+    }
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            lazyListState.scrollToItem(messageList.size - 1)
         }
     }
     Scaffold(
@@ -157,21 +169,22 @@ fun ChatScreen(
         content = { padding ->
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding()
+                    .fillMaxSize().padding(top = 10.dp)
             ) {
                 LazyColumn(modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth(0.95f)
+                    .fillMaxHeight(0.91f)
                     .align(Alignment.TopCenter),
-                    horizontalAlignment = Alignment.CenterHorizontally){
+                    state = lazyListState,
+                    horizontalAlignment = Alignment.CenterHorizontally,){
                     items(messageList){
                         it["timestamp"]?.let { it1 ->
                             it["message"]?.let { it2 ->
                                 MessageBubble(
                                     message = it2,
                                     timestamp = it1,
-                                    userNumber = number,
-                                    isCurrentUserMessage = number==myNumber,
+                                    userNumber = username,
+                                    isCurrentUserMessage = number==presenter.myNum,
                                     context = context,
                                     saveMsg = {msg, time->
                                         presenter.saveMessage(number, msg, time)
@@ -190,6 +203,10 @@ fun ChatScreen(
                     ChatInputField(){
                         GlobalScope.launch {
                             presenter.sendMessage(number, it)
+                            messageList = presenter.retrieveMessage(number)
+                            coroutineScope.launch {
+                                lazyListState.scrollToItem(messageList.size - 1)
+                            }
                         }
                     }
                 }
@@ -215,11 +232,13 @@ fun MessageBubble(message: String, timestamp: String, userNumber: String, isCurr
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clip(shape = RoundedCornerShape(16.dp))
+            .padding(vertical = 5.dp)
+            .clip(shape = RoundedCornerShape(12.dp))
             .background(bubbleColor)
             .combinedClickable(
-                onClick = { },
+                onClick = { Toast
+                    .makeText(context, "Long press to save message", Toast.LENGTH_SHORT)
+                    .show() },
                 onLongClick = {
                     saveMsg(message, timestamp)
                     Toast
@@ -228,46 +247,50 @@ fun MessageBubble(message: String, timestamp: String, userNumber: String, isCurr
                 },
             ),
     ) {
-        Column {
+        Column(modifier = Modifier.padding(4.dp)) {
             Text(
-                text = userNumber, // Need to import from DB
+                text = if(isCurrentUserMessage){
+                          "Me"
+                } else{
+                    userNumber
+                },
                 style = TextStyle(
                     color = Color.Unspecified,
-                    fontSize = 6.sp,
+                    fontSize = 12.sp,
                     fontFamily = FontFamily(Font((R.font.lexend_regular)))
                 ),
                 modifier = Modifier
-                    .padding(4.dp)
+                    .padding(start = 6.dp)
                     .align(Alignment.Start)
             )
 
             Spacer(modifier = Modifier.width(4.dp))
 
-            Row(
-                modifier = Modifier.padding(8.dp),
+            Box(
+                modifier = Modifier.padding(bottom = 4.dp, start = 8.dp, end = 8.dp)
+                    .fillMaxWidth(),
             ) {
                 Text(
                     text = message,
                     style = TextStyle(
                         color = Color.Black,
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                         fontFamily = FontFamily(Font((R.font.lexend_regular)))
                     ),
-                    modifier = Modifier
-                        .padding(4.dp),
-                    maxLines = 5
+                    modifier = Modifier,
+                    maxLines = 5,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.width(2.dp))
 
                 Text(
-                    text = formatTimestamp(timestamp),
-                    color = Color.Gray,
-                    fontSize = 6.sp,
+                    text = formatTimestamp(timestamp.substring(8 until timestamp.length)),
+                    fontSize = 12.sp,
                     fontFamily = FontFamily(Font((R.font.lexend_regular))),
                     modifier = Modifier
                         .padding(2.dp)
-                        .align(Alignment.Bottom)
+                        .align(Alignment.BottomEnd)
                 )
             }
         }
@@ -304,7 +327,6 @@ fun ChatInputField(onSend: (String) -> Unit) {
                 .fillMaxWidth(0.82f)
                 .clip(RoundedCornerShape(14.dp, 0.dp, 0.dp, 14.dp))
                 .background(MaterialTheme.colorScheme.primary)){
-
                 BasicTextField(
                     value = message,
                     onValueChange = {
@@ -315,7 +337,7 @@ fun ChatInputField(onSend: (String) -> Unit) {
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = androidx.compose.ui.text.input.ImeAction.Send
                     ),
-                    modifier = Modifier.padding(vertical = 6.dp, horizontal = 6.dp)
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp)
                 )
             }
             Button(
@@ -339,9 +361,11 @@ fun ChatInputField(onSend: (String) -> Unit) {
 }
 
 private fun formatTimestamp(timestamp: String): String {
-    val date = Date(timestamp.toLong())
-    val dateFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
-    return dateFormat.format(date)
+    val inputFormat = DateTimeFormatter.ofPattern("HHmmss")
+    val outputFormat = DateTimeFormatter.ofPattern("hh:mm a")
+
+    val time = LocalTime.parse(timestamp, inputFormat)
+    return time.format(outputFormat)
 }
 
 private fun formatDate(inputDate: String): String {

@@ -86,7 +86,7 @@ class AddContactActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AddContact()
+                    AddContact(){finish()}
                 }
             }
         }
@@ -95,7 +95,7 @@ class AddContactActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddContact() {
+fun AddContact(finishActivity: ()->Unit) {
     var textVisibility by remember { mutableStateOf(false) }
     var searchVisibility by remember { mutableStateOf(false) }
     var contactSelectionList = mutableSetOf<String>()
@@ -204,6 +204,8 @@ fun AddContact() {
                                 intent.putExtra("contactNumber", num)
                                 intent.putExtra("imageLink", image)
                                 context.startActivity(intent)
+                                addContactPresenter.addContact(num,context)
+                                finishActivity()
                             }
                         }
                     }
@@ -348,10 +350,4 @@ fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPr
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun Prev(){
-    AddContact()
 }
