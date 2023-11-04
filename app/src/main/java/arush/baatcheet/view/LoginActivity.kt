@@ -1,11 +1,15 @@
 package arush.baatcheet.view
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import arush.baatcheet.R
 import arush.baatcheet.databinding.ActivityLoginBinding
@@ -18,7 +22,10 @@ class LoginActivity : AppCompatActivity() {
     private val auth = FirebaseAuth.getInstance()
     private var checker = true
     private val reqCode = 1000
-    var imageUri : Uri? = null
+    private lateinit var imageUri : Uri
+    private val internetPermReqCode = 1001
+    private val readContactsPermReqCode = 1002
+    private val writeContactPermReqCode = 1003
 
     override fun onStart() {
         super.onStart()
@@ -33,6 +40,22 @@ class LoginActivity : AppCompatActivity() {
         loginBinding = ActivityLoginBinding.inflate(layoutInflater)
         val view = loginBinding.root
         setContentView(view)
+        imageUri = Uri.parse("android.resource://${this.packageName}/${R.drawable.no_dp_logo}")
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.INTERNET), internetPermReqCode)
+        }
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_CONTACTS), readContactsPermReqCode)
+        }
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_CONTACTS) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_CONTACTS), writeContactPermReqCode)
+        }
 
         val loginPresenter = LoginPresenter(this)
 
@@ -47,6 +70,8 @@ class LoginActivity : AppCompatActivity() {
                 else {
                     loginPresenter.login(loginBinding.nameInput.text.toString(),
                         "+91${loginBinding.numberInput.text.toString()}", imageUri)
+                    Log.d("qwertyLog1", imageUri.toString())
+                    FileHandler(applicationContext).storeDP(imageUri)
                     loginBinding.otpLayout.isVisible = true
                     loginBinding.getOTPButton.text = "VERIFY"
                     loginBinding.textInputLayout.isEnabled = false

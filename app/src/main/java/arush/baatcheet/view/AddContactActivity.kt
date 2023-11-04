@@ -1,13 +1,10 @@
 package arush.baatcheet.view
 
-import android.content.Context
-import android.os.Build
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.telephony.SmsManager
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -64,6 +61,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import arush.baatcheet.R
 import arush.baatcheet.presenter.AddContactPresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
@@ -73,8 +72,14 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class AddContactActivity : ComponentActivity() {
+
+    private val sendSmsPermReqCode = 1004
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.SEND_SMS), sendSmsPermReqCode)
+        }
         setContent {
             BaatcheetTheme {
                 Surface(
@@ -180,20 +185,26 @@ fun AddContact() {
                     Column (modifier = Modifier
                         .fillParentMaxHeight(0.09f)
                         .background(color = bgColor)){
-                        ContactDisplay(it.name, it.phoneNumber, addContactPresenter){
+                        ContactDisplay(it.name, it.phoneNumber, addContactPresenter){name,num,image->
                             if(textVisibility){
                                 isSelected = !isSelected
-                                if(it in contactSelectionList){
-                                    contactSelectionList.remove(it)
+                                if(num in contactSelectionList){
+                                    contactSelectionList.remove(num)
                                 }
                                 else if(contactSelectionList.size < 5){
-                                    contactSelectionList.add(it)
+                                    contactSelectionList.add(num)
                                 }
                                 else{
                                     Toast.makeText(context, "Sorry you cannot add more than 5 people", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                            /* TODO */
+                            else{
+                                val intent = Intent(context, ChatActivity::class.java)
+                                intent.putExtra("contactName", name)
+                                intent.putExtra("contactNumber", num)
+                                intent.putExtra("imageLink", image)
+                                context.startActivity(intent)
+                            }
                         }
                     }
                     Divider(color = Color(0xFFA3A3A3), modifier = Modifier
@@ -280,7 +291,7 @@ fun SearchContacts(
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 
-fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPresenter, select:(String) -> Unit){
+fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPresenter, select:(String,String,String) -> Unit){
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -298,7 +309,7 @@ fun ContactDisplay(name:String, number:String, addContactPresenter: AddContactPr
         .fillMaxSize()
         .clickable {
             if (imageLink.isNotEmpty()) {
-                select(number)
+                select(name,number, imageLink)
             }
         },
         verticalAlignment = Alignment.CenterVertically) {

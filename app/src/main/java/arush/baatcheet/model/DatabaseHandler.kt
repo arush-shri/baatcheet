@@ -26,11 +26,13 @@ class DatabaseHandler {
     private val userNumber = FirebaseAuth.getInstance().currentUser?.phoneNumber.toString()
 
     fun login(username: String, phoneNumber: String, imageUri: Uri?, publicKey: String) {
+        Log.d("qwertyLog2", imageUri.toString())
         if (imageUri != null) {
             val imageRef = storage.getReference("DP").child(phoneNumber + "DP")
             imageRef.putFile(imageUri)
                 .addOnSuccessListener {
                     imageRef.downloadUrl.addOnSuccessListener { uri ->
+                        Log.d("qwertyLog3", imageUri.toString())
                         val imageUrl = uri.toString()
                         val userDetail = UserDetailModel(username, imageUrl, publicKey)
                         database.child(phoneNumber).setValue(userDetail)
