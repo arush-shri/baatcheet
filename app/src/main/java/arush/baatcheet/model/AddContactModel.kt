@@ -20,8 +20,12 @@ class AddContactModel {
 
             while (it.moveToNext()) {
                 val name = it.getString(nameIndex)
-                val phoneNumber = it.getString(phoneNumberIndex)
-                contactList.add(ContactItem(name, phoneNumber.replace(" ", "")))
+                val phoneNumber = it.getString(phoneNumberIndex).replace(" ", "")
+                if("+91" in phoneNumber){
+                    contactList.add(ContactItem(name, phoneNumber))
+                }else{
+                    contactList.add(ContactItem(name, "+91$phoneNumber"))
+                }
             }
         }
         return contactList
@@ -49,8 +53,14 @@ class AddContactModel {
 
             while (it.moveToNext()) {
                 val phoneNumber = it.getString(phoneNumberIndex).replace(" ", "")
-                if(phoneNumber == username){
-                    return it.getString(nameIndex)
+                if("+91" in phoneNumber){
+                    if(phoneNumber == username){
+                        return it.getString(nameIndex)
+                    }
+                }else{
+                    if("+91$phoneNumber" == username){
+                        return it.getString(nameIndex)
+                    }
                 }
             }
         }

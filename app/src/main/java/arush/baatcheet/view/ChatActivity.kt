@@ -183,11 +183,11 @@ fun ChatScreen(
                                 MessageBubble(
                                     message = it2,
                                     timestamp = it1,
-                                    userNumber = username,
+                                    userName = username,
                                     isCurrentUserMessage = number==presenter.myNum,
                                     context = context,
                                     saveMsg = {msg, time->
-                                        presenter.saveMessage(number, msg, time)
+                                        presenter.saveMessage(username, msg, time)
                                     }
                                 )
                             }
@@ -217,7 +217,7 @@ fun ChatScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MessageBubble(message: String, timestamp: String, userNumber: String, isCurrentUserMessage: Boolean, context: Context,
+fun MessageBubble(message: String, timestamp: String, userName: String, isCurrentUserMessage: Boolean, context: Context,
                   saveMsg: (Any?, String) -> Unit) {
     val date = getCombinedTimestamp()
     val bubbleColor = if (isCurrentUserMessage) {
@@ -252,7 +252,7 @@ fun MessageBubble(message: String, timestamp: String, userNumber: String, isCurr
                 text = if(isCurrentUserMessage){
                           "Me"
                 } else{
-                    userNumber
+                    userName
                 },
                 style = TextStyle(
                     color = Color.Unspecified,
