@@ -9,6 +9,7 @@ import arush.baatcheet.model.AddContactModel
 import arush.baatcheet.model.Cryptography
 import arush.baatcheet.model.DatabaseHandler
 import arush.baatcheet.model.FileHandler
+import arush.baatcheet.model.GroupDetailsModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -23,6 +24,7 @@ class HomeScreenPresenter(private val context : Context) {
     private val cryptography = Cryptography()
     private val privateKey = fileHandler.getPrivateKey()
     private lateinit var publicKey: PublicKey
+    private lateinit var groupDetails: List<GroupDetailsModel>
     val myNum = connection.getMyNum()
 
     companion object {
@@ -54,20 +56,32 @@ class HomeScreenPresenter(private val context : Context) {
 
     fun receiveMessage(username: String) = callbackFlow<Boolean>{
         connection.receiveMessage(username).collect{
-            val messageList = ArrayList<HashMap<String,String>>()
             for (message in it){
                 fileHandler.storeChatMessage(username, message["message"], message["timestamp"].toString())
-                messageList.add(hashMapOf("timestamp" to message["timestamp"].toString(), "message" to cryptography.decryptMessage(message["message"].toString(),privateKey)))
             }
             trySend(true)
         }
     }
 
-    fun retrieveMessage(username: String): ArrayList<HashMap<String, String>>{
+    fun getNewGroup(username: String) = callbackFlow<ArrayList<HashMap<String,Any>>>
+    {
+        connection.receiveMessage(username).collect{
+            trySend(it)
+        }
+    }
+    fun retrieveMessage(username: String, isGroup: Boolean): ArrayList<HashMap<String, String>>{
         val messageList = fileHandler.retrieveChatMessage(username)
         var messages = ArrayList<HashMap<String,String>>()
-        for (message in messageList){
-            messages.add(hashMapOf("timestamp" to message.timestamp, "message" to cryptography.decryptMessage(message.message.toString(),privateKey)))
+        if(isGroup){
+            for (message in messageList){
+                messages.add(hashMapOf("timestamp" to message.timestamp, "message" to message.message.toString().substring(0..12)+
+                        cryptography.decryptMessage(message.message.toString().substring(13),privateKey)))
+            }
+        }
+        else{
+            for (message in messageList){
+                messages.add(hashMapOf("timestamp" to message.timestamp, "message" to cryptography.decryptMessage(message.message.toString(),privateKey)))
+            }
         }
         return messages
     }
@@ -121,6 +135,9 @@ class HomeScreenPresenter(private val context : Context) {
         }
     }
 
+    fun getGroupDetails(username: String){
+        groupDetails = fileHandler.getGroupContacts(username)
+    }
     private fun getCombinedTimestamp(): String {
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("ddMMyyyyHHmmss")

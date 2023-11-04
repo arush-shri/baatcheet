@@ -25,11 +25,25 @@ class AddContactPresenter {
         addContactModel.sendInvite(number,context)
     }
 
-    suspend fun createGroup(contactList: Set<String>, name: String, context: Context){
+    suspend fun createGroup(contactList: Set<String>, name: String, context: Context, myNum: String, newGroup: Boolean){
+        val groupName = if(newGroup){
+            connection.createGroup(name)
+        } else{
+            name
+        }
+        var contactListString = ""
+        val fileHandler = FileHandler(context)
+        fileHandler.addContact(groupName)
         for (contact in contactList){
-            val groupName = connection.createGroup(contact, name)
-            connection.getPublicKey(name).collect{
-                FileHandler(context).storeGroup(groupName, contact, it)
+            contactListString += "$contact "
+            connection.getPublicKey(contact).collect{
+                fileHandler.storeGroup(groupName, contact, it)
+            }
+        }
+        if (newGroup){
+            contactListString += myNum
+            for (contact in contactList) {
+                connection.sendGroupInvite(contact, groupName, contactListString)
             }
         }
     }

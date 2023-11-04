@@ -3,18 +3,14 @@ package arush.baatcheet.model
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import arush.baatcheet.R
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.FileWriter
 import java.security.KeyFactory
@@ -38,7 +34,7 @@ class FileHandler (private val context: Context){
         val file = File(subdir, "profileData.json")
         if(!file.exists()){file.createNewFile()}
         val gson = Gson()
-        var data = ArrayList<String>()
+        val data = ArrayList<String>()
         data.add(username)
         data.add(phoneNumber)
         val jsonData = gson.toJson(data)
@@ -70,14 +66,6 @@ class FileHandler (private val context: Context){
             val outputStream = FileOutputStream(File(subdir, "dp.jpg"))
             input.copyTo(outputStream)
         }
-//        val drawable = ContextCompat.getDrawable(context, R.drawable.no_dp_logo)
-//        val bitmap = drawable?.toBitmap()
-//        if (bitmap != null){
-//            val file = File(subdir, "dp.jpg")
-//            val outputStream = FileOutputStream(file)
-//            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-//            outputStream.close()
-//        }
     }
     fun getMyDP(): Uri {
         val file = File(subdir, "dp.jpg")
@@ -187,15 +175,12 @@ class FileHandler (private val context: Context){
     }
 
     fun addContact(username: String){
-        var storedList = getHomeMessage().toMutableMap()
+        val storedList = getHomeMessage().toMutableMap()
         storedList[username] = mapOf("messages" to ArrayList(listOf(HashMap())))
         storeHomeMessage(storedList)
     }
-    fun storeGroup(name: String, contact: String, publicKey:PublicKey){
-        var storedList = getHomeMessage().toMutableMap()
-        storedList[name] = mapOf("messages" to ArrayList(listOf(HashMap())))
-        storeHomeMessage(storedList)
 
+    fun storeGroup(name: String, contact: String, publicKey:PublicKey){
         val file = File(subdir, "$name.json")
         if(!file.exists()){
             file.createNewFile()
@@ -210,10 +195,14 @@ class FileHandler (private val context: Context){
 
     fun getGroupContacts(name: String): List<GroupDetailsModel>{
         val file = File(subdir, "$name.json")
+        if(!file.exists()){
+            return emptyList()
+        }
         val gson = Gson()
         val jsonData = file.readText()
-        var contactList = mutableListOf<GroupDetailsModel>()
-        val jsonObjects = jsonData.split("}")
+        val contactList = mutableListOf<GroupDetailsModel>()
+        val jsonObjects = jsonData.split("}").toMutableList()
+        jsonObjects.removeLast()
         for (contact in jsonObjects){
             val orgContact = gson.fromJson("$contact}", GroupDetailsModel::class.java)
             contactList.add(orgContact)

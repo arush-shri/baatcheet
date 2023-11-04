@@ -14,8 +14,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -135,10 +133,14 @@ class DatabaseHandler {
         awaitClose { }
     }
 
-    fun createGroup(contact: String, groupName: String): String{
-        val uniqueID = database.push().key + groupName
-        database.child(contact).child("messageList").child(uniqueID).setValue(emptyList<HashMap<String, String>>())
-        return uniqueID
+    fun createGroup(groupName: String): String {
+        return database.push().key + groupName
+    }
+
+    fun sendGroupInvite(contact: String, uniqueID: String, contactList: String){
+        var message = ArrayList<HashMap<String, String>>()
+        message.add(hashMapOf("timestamp" to "timestamp", "message" to contactList))
+        database.child(contact).child("messageList").child(uniqueID).child("messages").setValue(message)
     }
     fun EditProfile(username: String,phoneNumber: String, imageUri: Uri?){
         val imageRef = storage.getReference("DP").child(phoneNumber + "DP")

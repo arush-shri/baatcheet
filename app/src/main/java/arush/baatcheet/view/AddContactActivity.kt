@@ -68,6 +68,7 @@ import arush.baatcheet.presenter.AddContactPresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -80,22 +81,25 @@ class AddContactActivity : ComponentActivity() {
         {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.SEND_SMS), sendSmsPermReqCode)
         }
+        val myNum = intent.getStringExtra("myNum")
         setContent {
             BaatcheetTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AddContact(){finish()}
+                    if (myNum != null) {
+                        AddContact(myNum){finish()}
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
-fun AddContact(finishActivity: ()->Unit) {
+fun AddContact(myNum: String, finishActivity: ()->Unit) {
     var textVisibility by remember { mutableStateOf(false) }
     var searchVisibility by remember { mutableStateOf(false) }
     var contactSelectionList = mutableSetOf<String>()
@@ -225,7 +229,7 @@ fun AddContact(finishActivity: ()->Unit) {
                             }
                             else {
                                 GlobalScope.launch {
-                                    addContactPresenter.createGroup(contactSelectionList, groupNameText, context)
+                                    addContactPresenter.createGroup(contactSelectionList, groupNameText, context, myNum, true)
                                 }
                             }
                         },

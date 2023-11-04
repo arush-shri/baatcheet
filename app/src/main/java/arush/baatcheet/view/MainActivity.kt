@@ -125,6 +125,7 @@ fun MainScreen() {
         FloatingActionButton(
             onClick = {
                 val intent = Intent(context, AddContactActivity::class.java)
+                intent.putExtra("myNum", homeScreenPresenter.myNum)
                 context.startActivity(intent)
             },
             modifier = Modifier

@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.R
 import arush.baatcheet.model.SaveMessageModel
+import arush.baatcheet.presenter.AddContactPresenter
 import arush.baatcheet.presenter.HomeScreenPresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 import coil.annotation.ExperimentalCoilApi
@@ -111,20 +112,36 @@ fun ChatScreen(
     number: String,
     userDP: String?
 ) {
+    val isGroup: Boolean = number.length > 15
     val context = LocalContext.current
     val presenter = HomeScreenPresenter.getInstance(context)
-    var messageList by remember { mutableStateOf(presenter.retrieveMessage(number)) }
+    var recMsg = !isGroup
+    var messageList by remember { mutableStateOf(presenter.retrieveMessage(number, isGroup)) }
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(true) {
-        presenter.getPublicKey(number)
+        if (isGroup){
+            presenter.getGroupDetails(number)
+        } else {
+            presenter.getPublicKey(number)
+        }
     }
     LaunchedEffect(presenter){
-        presenter.receiveMessage(number).collect{
-            if(it){
-                messageList = presenter.retrieveMessage(number)
-                presenter.removeMessages(number)
+        if(recMsg){
+            presenter.receiveMessage(number).collect {
+                if (it) {
+                    messageList = presenter.retrieveMessage(number, isGroup)
+                    presenter.removeMessages(number)
+                }
+            }
+        }
+        else{
+            presenter.getNewGroup(number).collect{
+                val list = it[0]["message"].toString().split(' ').toMutableSet()
+                list.remove(presenter.myNum)
+                AddContactPresenter().createGroup(list, number, context, presenter.myNum, false)
+                recMsg = true
             }
         }
     }
@@ -169,7 +186,8 @@ fun ChatScreen(
         content = { padding ->
             Box(
                 modifier = Modifier
-                    .fillMaxSize().padding(top = 10.dp)
+                    .fillMaxSize()
+                    .padding(top = 10.dp)
             ) {
                 LazyColumn(modifier = Modifier
                     .fillMaxWidth(0.95f)
@@ -181,13 +199,33 @@ fun ChatScreen(
                         it["timestamp"]?.let { it1 ->
                             it["message"]?.let { it2 ->
                                 MessageBubble(
-                                    message = it2,
+                                    message = if(isGroup){
+                                        it2.substring(13)
+                                    } else{
+                                        it2
+                                    },
                                     timestamp = it1,
-                                    userName = username,
-                                    isCurrentUserMessage = number==presenter.myNum,
+                                    userName = if(isGroup){
+                                        it2.substring(0..12)
+                                    } else{
+                                        username
+                                    },
+                                    isCurrentUserMessage = if(isGroup){
+                                        it2.substring(0..12)==presenter.myNum
+                                    } else{
+                                        number==presenter.myNum
+                                    },
                                     context = context,
                                     saveMsg = {msg, time->
-                                        presenter.saveMessage(username, msg, time)
+                                        val usernum  = if(isGroup){
+                                            it2.substring(0..12)
+                                        } else if(number==presenter.myNum) {
+                                            "Me(You)"
+                                        }
+                                        else{
+                                            username
+                                        }
+                                        presenter.saveMessage(usernum, msg, time)
                                     }
                                 )
                             }
@@ -202,8 +240,12 @@ fun ChatScreen(
                 ) {
                     ChatInputField(){
                         GlobalScope.launch {
-                            presenter.sendMessage(number, it)
-                            messageList = presenter.retrieveMessage(number)
+                            if(isGroup){
+                                presenter.sendMessage(number, presenter.myNum+it)
+                            } else{
+                                presenter.sendMessage(number, it)
+                            }
+                            messageList = presenter.retrieveMessage(number, isGroup)
                             coroutineScope.launch {
                                 lazyListState.scrollToItem(messageList.size - 1)
                             }
@@ -236,9 +278,11 @@ fun MessageBubble(message: String, timestamp: String, userName: String, isCurren
             .clip(shape = RoundedCornerShape(12.dp))
             .background(bubbleColor)
             .combinedClickable(
-                onClick = { Toast
-                    .makeText(context, "Long press to save message", Toast.LENGTH_SHORT)
-                    .show() },
+                onClick = {
+                    Toast
+                        .makeText(context, "Long press to save message", Toast.LENGTH_SHORT)
+                        .show()
+                },
                 onLongClick = {
                     saveMsg(message, timestamp)
                     Toast
@@ -267,7 +311,8 @@ fun MessageBubble(message: String, timestamp: String, userName: String, isCurren
             Spacer(modifier = Modifier.width(4.dp))
 
             Box(
-                modifier = Modifier.padding(bottom = 4.dp, start = 8.dp, end = 8.dp)
+                modifier = Modifier
+                    .padding(bottom = 4.dp, start = 8.dp, end = 8.dp)
                     .fillMaxWidth(),
             ) {
                 Text(
