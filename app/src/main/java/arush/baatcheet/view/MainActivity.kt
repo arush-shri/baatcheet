@@ -250,7 +250,9 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
     var contactDisplay : String = if(contact.length > 13) {
         contact.substring(21)
     }
-    else {
+    else if(homeScreenPresenter.myNum == contact){
+        "Me (You)"
+    } else {
         val name = homeScreenPresenter.getContactName(contact, context.contentResolver)
         if(name.isNullOrEmpty()) contact
         else name
@@ -299,7 +301,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
             )
             messages.last()["message"]?.let {
                 Text(
-                    text = homeScreenPresenter.getDecrypted(it.toString()),
+                    text = homeScreenPresenter.getDecrypted(it.toString()).substring(13),
                     color = if(isSystemInDarkTheme()){
                         LightGray
                     }else{

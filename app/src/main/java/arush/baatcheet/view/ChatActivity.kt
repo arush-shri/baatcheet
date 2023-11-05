@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,7 +44,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -115,14 +118,17 @@ fun ChatScreen(
     val isGroup: Boolean = number.length > 15
     val context = LocalContext.current
     val presenter = HomeScreenPresenter.getInstance(context)
-    var recMsg = !isGroup
-    var messageList by remember { mutableStateOf(presenter.retrieveMessage(number, isGroup)) }
+    var messageList by remember { mutableStateOf(presenter.retrieveMessage(number)) }
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    var recMsg = !isGroup && presenter.grpDetInit()
+    var prevDate by remember{ mutableIntStateOf(0) }
+
 
     LaunchedEffect(true) {
         if (isGroup){
             presenter.getGroupDetails(number)
+            recMsg = !presenter.grpDetInit()
         } else {
             presenter.getPublicKey(number)
         }
@@ -131,8 +137,11 @@ fun ChatScreen(
         if(recMsg){
             presenter.receiveMessage(number).collect {
                 if (it) {
-                    messageList = presenter.retrieveMessage(number, isGroup)
+                    messageList = presenter.retrieveMessage(number)
                     presenter.removeMessages(number)
+                    coroutineScope.launch {
+                        lazyListState.scrollToItem(messageList.size - 1)
+                    }
                 }
             }
         }
@@ -147,13 +156,20 @@ fun ChatScreen(
     }
     LaunchedEffect(Unit) {
         coroutineScope.launch {
-            lazyListState.scrollToItem(messageList.size - 1)
+            if(messageList.isNotEmpty()){
+                lazyListState.scrollToItem(messageList.size - 1)
+            }
         }
+    }
+    var titleName = if(isGroup){
+        number.substring(21)
+    }else{
+        username
     }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(username, fontFamily = FontFamily(Font((R.font.lexend_regular)))) },
+                title = { Text(titleName, fontFamily = FontFamily(Font((R.font.lexend_regular)))) },
                 navigationIcon = {
                     IconButton(onClick = { goBack() }) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
@@ -187,7 +203,7 @@ fun ChatScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 10.dp)
+                    .padding(top = 60.dp)
             ) {
                 LazyColumn(modifier = Modifier
                     .fillMaxWidth(0.95f)
@@ -199,23 +215,16 @@ fun ChatScreen(
                         it["timestamp"]?.let { it1 ->
                             it["message"]?.let { it2 ->
                                 MessageBubble(
-                                    message = if(isGroup){
-                                        it2.substring(13)
-                                    } else{
-                                        it2
-                                    },
+                                    message = it2.substring(13),
                                     timestamp = it1,
                                     userName = if(isGroup){
                                         it2.substring(0..12)
                                     } else{
                                         username
                                     },
-                                    isCurrentUserMessage = if(isGroup){
-                                        it2.substring(0..12)==presenter.myNum
-                                    } else{
-                                        number==presenter.myNum
-                                    },
+                                    isCurrentUserMessage = it2.substring(0..12)==presenter.myNum,
                                     context = context,
+                                    prevDate = prevDate,
                                     saveMsg = {msg, time->
                                         val usernum  = if(isGroup){
                                             it2.substring(0..12)
@@ -240,12 +249,8 @@ fun ChatScreen(
                 ) {
                     ChatInputField(){
                         GlobalScope.launch {
-                            if(isGroup){
-                                presenter.sendMessage(number, presenter.myNum+it)
-                            } else{
-                                presenter.sendMessage(number, it)
-                            }
-                            messageList = presenter.retrieveMessage(number, isGroup)
+                            presenter.sendMessage(number, presenter.myNum+it)
+                            messageList = presenter.retrieveMessage(number)
                             coroutineScope.launch {
                                 lazyListState.scrollToItem(messageList.size - 1)
                             }
@@ -260,16 +265,15 @@ fun ChatScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageBubble(message: String, timestamp: String, userName: String, isCurrentUserMessage: Boolean, context: Context,
-                  saveMsg: (Any?, String) -> Unit) {
-    val date = getCombinedTimestamp()
+                  prevDate: Int, saveMsg: (Any?, String) -> Unit) {
     val bubbleColor = if (isCurrentUserMessage) {
         MaterialTheme.colorScheme.onPrimary // User's sent message color
     } else {
         MaterialTheme.colorScheme.onSecondary // Other person's received message color
     }
 
-    if(date.toInt() > timestamp.substring(0..7).toInt()){
-        dateStamp(date)
+    if(timestamp.substring(0..7).toInt() != prevDate){
+        dateStamp(timestamp.substring(0..7))
     }
     Box(
         modifier = Modifier
@@ -371,7 +375,7 @@ fun ChatInputField(onSend: (String) -> Unit) {
                 .fillMaxHeight()
                 .fillMaxWidth(0.82f)
                 .clip(RoundedCornerShape(14.dp, 0.dp, 0.dp, 14.dp))
-                .background(MaterialTheme.colorScheme.primary)){
+                .background(MaterialTheme.colorScheme.onTertiaryContainer)){
                 BasicTextField(
                     value = message,
                     onValueChange = {
@@ -391,6 +395,7 @@ fun ChatInputField(onSend: (String) -> Unit) {
                     message = "" },
                 enabled = message.isNotEmpty(),
                 shape = RoundedCornerShape(0.dp, 14.dp,14.dp,0.dp),
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onTertiaryContainer),
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .fillMaxHeight()
@@ -399,7 +404,7 @@ fun ChatInputField(onSend: (String) -> Unit) {
                     imageVector = Icons.Filled.Send,
                     contentDescription = "Send",
                     modifier = Modifier.size(36.dp),
-                    tint = MaterialTheme.colorScheme.secondary,
+                    tint = Color.White,
                 )
             }
         }

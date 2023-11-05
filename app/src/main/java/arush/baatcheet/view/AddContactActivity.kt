@@ -77,18 +77,20 @@ class AddContactActivity : ComponentActivity() {
     private val sendSmsPermReqCode = 1004
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val myNum = intent.getStringExtra("myNum")
+        var done = false
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
         {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.SEND_SMS), sendSmsPermReqCode)
+            done = true
         }
-        val myNum = intent.getStringExtra("myNum")
         setContent {
             BaatcheetTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if (myNum != null) {
+                    if (myNum != null && done) {
                         AddContact(myNum){finish()}
                     }
                 }
