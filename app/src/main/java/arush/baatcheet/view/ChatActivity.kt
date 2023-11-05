@@ -133,26 +133,22 @@ fun ChatScreen(
             presenter.getPublicKey(number)
         }
         presenter.getMyKey()
-        if(recMsg){
-            Log.d("qwertyC1", presenter.grpDetInit(number).toString())
-            presenter.receiveMessage(number).collect {
-                if (it) {
-                    messageList = presenter.retrieveMessage(number)
-                    presenter.removeMessages(number)
-                    coroutineScope.launch {
-                        lazyListState.scrollToItem(messageList.size - 1)
-                    }
-                }
-            }
-        }
-        else{
+        if(!recMsg){
             presenter.getNewGroup(number).collect{
                 val list = it[0]["message"].toString().split(' ').toMutableSet()
                 list.remove(presenter.myNum)
                 presenter.removeMessages(number)
                 AddContactPresenter().createGroup(list, number, context, presenter.myNum, false)
                 presenter.getGroupDetails(number)
-                recMsg = true
+            }
+        }
+        presenter.receiveMessage(number).collect {
+            if (it) {
+                messageList = presenter.retrieveMessage(number)
+                presenter.removeMessages(number)
+                coroutineScope.launch {
+                    lazyListState.scrollToItem(messageList.size - 1)
+                }
             }
         }
     }
