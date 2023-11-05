@@ -41,7 +41,6 @@ class HomeScreenPresenter(private val context : Context) {
     suspend fun getPublicKey(username: String){
         connection.getPublicKey(username).collect{
             publicKey = it
-            getMyKey()
         }
     }
 
@@ -50,13 +49,28 @@ class HomeScreenPresenter(private val context : Context) {
             myPublicKey = it
         }
     }
-    suspend fun sendMessage(username: String, message:String){
-        while (!(this::publicKey.isInitialized) && !(this::myPublicKey.isInitialized)) {
+    suspend fun sendMessage(username: String, message:String, isGroup: Boolean){
+        Log.d("qwertyS1", username)
+        while (!isGroup && (!(this::publicKey.isInitialized) || !(this::myPublicKey.isInitialized))) {
+            Log.d("qwertyS21", message)
             delay(1000)
         }
         val timeStamp = getCombinedTimestamp()
-        val encryptedMessage = cryptography.encryptMessage(message, publicKey)
-        connection.sendMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),username, timeStamp)
+        if(isGroup){
+            while (groupDetails.isNullOrEmpty() || !(this::myPublicKey.isInitialized)){
+                Log.d("qwertyS22", groupDetails.toString() + myPublicKey.toString())
+                delay(1000)
+            }
+            for(contact in groupDetails!!){
+                val encryptedMessage = cryptography.encryptMessage(message, contact.pubKey)
+                connection.sendGroupMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),contact.username, timeStamp,username)
+
+            }
+        }
+        else{
+            val encryptedMessage = cryptography.encryptMessage(message, publicKey)
+            connection.sendMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),username, timeStamp)
+        }
         val encryptedMessageStore = cryptography.encryptMessage(message, myPublicKey)
         fileHandler.storeChatMessage(username, Base64.encodeToString(encryptedMessageStore, Base64.DEFAULT), timeStamp)
     }
@@ -74,6 +88,7 @@ class HomeScreenPresenter(private val context : Context) {
     {
         connection.receiveMessage(username).collect{
             trySend(it)
+            close()
         }
     }
     fun retrieveMessage(username: String): ArrayList<HashMap<String, String>>{
@@ -134,11 +149,12 @@ class HomeScreenPresenter(private val context : Context) {
         }
     }
 
-    fun getGroupDetails(username: String){
-        groupDetails = fileHandler.getGroupContacts(username)
+    suspend fun getGroupDetails(username: String){
+        groupDetails = fileHandler.getGroupContacts(username, connection)
+        Log.d("qwertyGD", groupDetails.toString())
     }
-    fun grpDetInit(): Boolean{
-        return groupDetails==null
+    fun grpDetInit(name: String): Boolean{
+        return fileHandler.fileExist(name)
     }
     private fun getCombinedTimestamp(): String {
         val currentDateTime = LocalDateTime.now()

@@ -198,7 +198,7 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
             tempHomeData = homeData
-            homeData = homeData+it
+            homeData = it+homeData
             homeScreenPresenter.setMessageList(homeData)
             chatsData = homeData.keys.toList()
         }
@@ -222,7 +222,11 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
                             )
                         }
                         else {
-                            ChatListItem(chat, it, homeScreenPresenter, it.size, context)
+                            if(chat.length>13){
+                                ChatListItem(chat, ArrayList(), homeScreenPresenter, 0, context)
+                            }else{
+                                ChatListItem(chat, it, homeScreenPresenter, it.size, context)
+                            }
                         }
                     } else {
                         ChatListItem(chat, it, homeScreenPresenter, 0, context)
@@ -246,9 +250,9 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
                  homeScreenPresenter: HomeScreenPresenter, msgChange: Int, context: Context) {
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
-    var msgCount by remember { mutableStateOf(msgChange) }
+    var msgCount by remember { mutableIntStateOf(msgChange) }
     var contactDisplay : String = if(contact.length > 13) {
-        contact.substring(21)
+        contact.substring(20)
     }
     else if(homeScreenPresenter.myNum == contact){
         "Me (You)"
@@ -299,17 +303,19 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
                 color = MaterialTheme.colorScheme.secondary,
                 fontFamily = FontFamily(Font((R.font.lexend_regular))),
             )
-            messages.last()["message"]?.let {
-                Text(
-                    text = homeScreenPresenter.getDecrypted(it.toString()).substring(13),
-                    color = if(isSystemInDarkTheme()){
-                        LightGray
-                    }else{
-                        Gray},
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))))
-                )
+            if (messages.isNotEmpty()){
+                messages.last()["message"]?.let {
+                    Text(
+                        text = homeScreenPresenter.getDecrypted(it.toString()).substring(13),
+                        color = if(isSystemInDarkTheme()){
+                            LightGray
+                        }else{
+                            Gray},
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_regular))))
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.weight(1f))

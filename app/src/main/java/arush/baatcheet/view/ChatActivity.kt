@@ -121,20 +121,20 @@ fun ChatScreen(
     var messageList by remember { mutableStateOf(presenter.retrieveMessage(number)) }
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    var recMsg = !isGroup && presenter.grpDetInit()
+    var recMsg = !isGroup && presenter.grpDetInit(number)
     var prevDate by remember{ mutableIntStateOf(0) }
 
 
     LaunchedEffect(true) {
         if (isGroup){
             presenter.getGroupDetails(number)
-            recMsg = !presenter.grpDetInit()
+            recMsg = presenter.grpDetInit(number)
         } else {
             presenter.getPublicKey(number)
         }
-    }
-    LaunchedEffect(presenter){
+        presenter.getMyKey()
         if(recMsg){
+            Log.d("qwertyC1", presenter.grpDetInit(number).toString())
             presenter.receiveMessage(number).collect {
                 if (it) {
                     messageList = presenter.retrieveMessage(number)
@@ -149,7 +149,9 @@ fun ChatScreen(
             presenter.getNewGroup(number).collect{
                 val list = it[0]["message"].toString().split(' ').toMutableSet()
                 list.remove(presenter.myNum)
+                presenter.removeMessages(number)
                 AddContactPresenter().createGroup(list, number, context, presenter.myNum, false)
+                presenter.getGroupDetails(number)
                 recMsg = true
             }
         }
@@ -162,7 +164,7 @@ fun ChatScreen(
         }
     }
     var titleName = if(isGroup){
-        number.substring(21)
+        number.substring(20)
     }else{
         username
     }
@@ -247,9 +249,10 @@ fun ChatScreen(
                         .padding(5.dp)
                         .align(Alignment.BottomCenter),
                 ) {
-                    ChatInputField(){
+                    ChatInputField{
                         GlobalScope.launch {
-                            presenter.sendMessage(number, presenter.myNum+it)
+                            Log.d("qwertyS", "$number $isGroup")
+                            presenter.sendMessage(number, presenter.myNum+it, isGroup)
                             messageList = presenter.retrieveMessage(number)
                             coroutineScope.launch {
                                 lazyListState.scrollToItem(messageList.size - 1)
@@ -271,7 +274,6 @@ fun MessageBubble(message: String, timestamp: String, userName: String, isCurren
     } else {
         MaterialTheme.colorScheme.onSecondary // Other person's received message color
     }
-
     if(timestamp.substring(0..7).toInt() != prevDate){
         dateStamp(timestamp.substring(0..7))
     }

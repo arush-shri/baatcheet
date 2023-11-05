@@ -2,6 +2,7 @@ package arush.baatcheet.presenter
 
 import android.content.ContentResolver
 import android.content.Context
+import android.util.Log
 import arush.baatcheet.model.AddContactModel
 import arush.baatcheet.model.ContactItem
 import arush.baatcheet.model.DatabaseHandler
@@ -25,7 +26,7 @@ class AddContactPresenter {
         addContactModel.sendInvite(number,context)
     }
 
-    suspend fun createGroup(contactList: Set<String>, name: String, context: Context, myNum: String, newGroup: Boolean){
+    fun createGroup(contactList: Set<String>, name: String, context: Context, myNum: String, newGroup: Boolean){
         val groupName = if(newGroup){
             connection.createGroup(name)
         } else{
@@ -36,10 +37,8 @@ class AddContactPresenter {
         fileHandler.addContact(groupName)
         for (contact in contactList){
             contactListString += "$contact "
-            connection.getPublicKey(contact).collect{
-                fileHandler.storeGroup(groupName, contact, it)
-            }
         }
+        fileHandler.storeGroup(groupName, contactListString)
         if (newGroup){
             contactListString += myNum
             for (contact in contactList) {

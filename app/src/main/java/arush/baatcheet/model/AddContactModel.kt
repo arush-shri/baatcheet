@@ -21,10 +21,12 @@ class AddContactModel {
             while (it.moveToNext()) {
                 val name = it.getString(nameIndex)
                 val phoneNumber = it.getString(phoneNumberIndex).replace(" ", "")
-                if("+91" in phoneNumber){
-                    contactList.add(ContactItem(name, phoneNumber))
-                }else{
-                    contactList.add(ContactItem(name, "+91$phoneNumber"))
+                if(phoneNumber.length>=10) {
+                    if("+91" in phoneNumber){
+                        contactList.add(ContactItem(name, phoneNumber))
+                    }else{
+                        contactList.add(ContactItem(name, "+91$phoneNumber"))
+                    }
                 }
             }
         }

@@ -3,6 +3,7 @@ package arush.baatcheet.model
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import arush.baatcheet.R
@@ -180,20 +181,25 @@ class FileHandler (private val context: Context){
         storeHomeMessage(storedList)
     }
 
-    fun storeGroup(name: String, contact: String, publicKey:PublicKey){
+    fun storeGroup(name: String, contactList: String){
         val file = File(subdir, "$name.json")
         if(!file.exists()){
             file.createNewFile()
+            val gson = Gson()
+            val jsonData = gson.toJson(contactList)
+            val fileWriter = FileWriter(file, false)
+            fileWriter.write(jsonData)
+            fileWriter.close()
+            Log.d("qwertyFW0", contactList)
         }
-        val gson = Gson()
-        val detail = GroupDetailsModel(contact, publicKey)
-        val jsonData = gson.toJson(detail)
-        val fileWriter = FileWriter(file, true)
-        fileWriter.write(jsonData)
-        fileWriter.close()
+        else{
+            Log.d("qwertyFW1", contactList)
+            return
+        }
+        Log.d("qwertyFW2", contactList)
     }
 
-    fun getGroupContacts(name: String): List<GroupDetailsModel>{
+    suspend fun getGroupContacts(name: String, connection: DatabaseHandler): List<GroupDetailsModel>{
         val file = File(subdir, "$name.json")
         if(!file.exists()){
             return emptyList()
@@ -201,11 +207,12 @@ class FileHandler (private val context: Context){
         val gson = Gson()
         val jsonData = file.readText()
         val contactList = mutableListOf<GroupDetailsModel>()
-        val jsonObjects = jsonData.split("}").toMutableList()
-        jsonObjects.removeLast()
-        for (contact in jsonObjects){
-            val orgContact = gson.fromJson("$contact}", GroupDetailsModel::class.java)
-            contactList.add(orgContact)
+        val contacts = gson.fromJson(jsonData, String::class.java).split(" ").toMutableList()
+        contacts.removeLast()
+        for (item in contacts){
+            connection.getPublicKey(item).collect{
+                contactList.add(GroupDetailsModel(item, it))
+            }
         }
         return contactList
     }
@@ -241,5 +248,10 @@ class FileHandler (private val context: Context){
             return messageArray
         }
         return ArrayList<SaveMessageModel>()
+    }
+
+    fun fileExist(name:String): Boolean{
+        val file = File(subdir, "$name.json")
+        return file.exists()
     }
 }

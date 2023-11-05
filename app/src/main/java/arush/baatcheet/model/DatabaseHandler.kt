@@ -61,6 +61,7 @@ class DatabaseHandler {
             val keySpec = X509EncodedKeySpec(publicKeyBytes)
             val keyFactory = KeyFactory.getInstance("RSA")
             trySend(keyFactory.generatePublic(keySpec))
+            close()
         }
         awaitClose {  }
     }
@@ -74,6 +75,18 @@ class DatabaseHandler {
                 }
                 message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
                 database.child(toWhom).child("messageList").child(userNumber).child("messages").setValue(message)
+            }
+    }
+
+    fun sendGroupMessage(msg: String, toWhom: String, timeStamp:String, groupName: String){
+        var message = ArrayList<HashMap<String, String>>()
+        database.child(toWhom).child("messageList").child(groupName).child("messages")
+            .get().addOnSuccessListener {
+                if(it.value != null){
+                    message = it.value as ArrayList<HashMap<String, String>>
+                }
+                message.add(hashMapOf("timestamp" to timeStamp, "message" to msg))
+                database.child(toWhom).child("messageList").child(groupName).child("messages").setValue(message)
             }
     }
 
@@ -128,6 +141,7 @@ class DatabaseHandler {
         database.child(username).child("profileDPLink").get().addOnSuccessListener {
             if(it.value != null){
                 trySend(it.value.toString())
+                close()
             }
         }
         awaitClose { }
@@ -139,7 +153,7 @@ class DatabaseHandler {
 
     fun sendGroupInvite(contact: String, uniqueID: String, contactList: String){
         var message = ArrayList<HashMap<String, String>>()
-        message.add(hashMapOf("timestamp" to "timestamp", "message" to contactList))
+        message.add(hashMapOf("timestamp" to "07062003121523", "message" to contactList))
         database.child(contact).child("messageList").child(uniqueID).child("messages").setValue(message)
     }
     fun EditProfile(username: String,phoneNumber: String, imageUri: Uri?){
