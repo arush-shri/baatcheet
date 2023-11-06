@@ -39,6 +39,7 @@ class HomeScreenPresenter(private val context : Context) {
         }
     }
     suspend fun getPublicKey(username: String){
+        getMyKey()
         connection.getPublicKey(username).collect{
             publicKey = it
         }
@@ -50,19 +51,24 @@ class HomeScreenPresenter(private val context : Context) {
         }
     }
     suspend fun sendMessage(username: String, message:String, isGroup: Boolean){
-
+        var count = 0
         while (!isGroup && (!(this::publicKey.isInitialized) || !(this::myPublicKey.isInitialized))) {
-            delay(1000)
+            delay(500)
+            if(count++>20){
+                return
+            }
         }
         val timeStamp = getCombinedTimestamp()
         if(isGroup){
             while (groupDetails.isNullOrEmpty() || !(this::myPublicKey.isInitialized)){
-                delay(1000)
+                delay(500)
+                if(count++ > 20){
+                    return
+                }
             }
             for(contact in groupDetails!!){
                 val encryptedMessage = cryptography.encryptMessage(message, contact.pubKey)
                 connection.sendGroupMessage(Base64.encodeToString(encryptedMessage, Base64.DEFAULT),contact.username, timeStamp,username)
-
             }
         }
         else{

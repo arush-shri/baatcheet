@@ -105,9 +105,14 @@ fun AddContact(myNum: String, finishActivity: ()->Unit) {
     var searchVisibility by remember { mutableStateOf(false) }
     var contactSelectionList = mutableSetOf<String>()
     var groupNameText by remember { mutableStateOf("") }
+    var searchText by remember { mutableStateOf("") }
     val addContactPresenter = AddContactPresenter()
     val context = LocalContext.current
     var contactList = addContactPresenter.getContactList(context.contentResolver)
+
+    val filteredList = contactList.filter { contact ->
+        contact.name.contains(searchText, ignoreCase = true)
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier
@@ -120,7 +125,11 @@ fun AddContact(myNum: String, finishActivity: ()->Unit) {
                 }
                 SearchContacts(
                     onSearchBarClose = {
+                        searchText = ""
                         searchVisibility = false
+                    },
+                    onInput = {
+                        searchText = it
                     }
                 )
             }
@@ -178,7 +187,7 @@ fun AddContact(myNum: String, finishActivity: ()->Unit) {
             .fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally) {
             LazyColumn(modifier = Modifier.fillMaxWidth(0.92f)){
-                items(contactList){
+                items(filteredList){
                     var isSelected by remember { mutableStateOf(false) }
                     var bgColor = if(isSelected && textVisibility) {
                         if(isSystemInDarkTheme())Color(0xFF179B38) else Color(0xFF02EC3D)
@@ -253,7 +262,8 @@ fun AddContact(myNum: String, finishActivity: ()->Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchContacts(
-    onSearchBarClose: () -> Unit
+    onSearchBarClose: () -> Unit,
+    onInput: (String) -> Unit
 ) {
     var searchText by remember { mutableStateOf("") }
 
@@ -282,6 +292,7 @@ fun SearchContacts(
                 value = searchText,
                 onValueChange = {
                     searchText = it
+                    onInput(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(fontSize = 18.sp,fontFamily = FontFamily(Font((R.font.lexend_regular)))),

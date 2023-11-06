@@ -58,7 +58,7 @@ class SavedMessagesActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SavedMessage()
+                    SavedMessage(){finish()}
                 }
             }
         }
@@ -67,7 +67,7 @@ class SavedMessagesActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SavedMessage(){
+fun SavedMessage(goBack: ()->Unit){
     val context = LocalContext.current
     val savedMessages = SavedMessagePresenter(context).getSaveMessage()
     Column(modifier = Modifier.fillMaxSize()) {
@@ -77,7 +77,7 @@ fun SavedMessage(){
                 ,modifier = Modifier
                         .size(40.dp)
                         .padding(top = 3.dp)
-                        .clickable { })
+                        .clickable { goBack() })
                 Text(text = "Saved Messages",
                     style = TextStyle(fontFamily = FontFamily(Font((R.font.lexend_medium))), fontSize = 29.sp)
                 )
@@ -131,11 +131,4 @@ private fun formatDateTime(timeStamp: String): String{
 
     val date = inputFormat.parse(timeStamp)
     return outputFormat.format(date)
-}
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview3() {
-    BaatcheetTheme {
-        SavedMessage()
-    }
 }

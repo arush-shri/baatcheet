@@ -91,6 +91,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     var isSearchBarActive by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf("") }
     val context = LocalContext.current
     val homeScreenPresenter = HomeScreenPresenter.getInstance(context)
 
@@ -102,8 +103,10 @@ fun MainScreen() {
                 }
                 SearchBar(
                     onSearchQueryChange = {
+                        searchText = it
                     },
                     onSearchBarClose = {
+                        searchText = ""
                         isSearchBarActive = false
                     }
                 )
@@ -119,7 +122,7 @@ fun MainScreen() {
                 thickness = 1.dp,
                 modifier = Modifier.fillMaxWidth()
             )
-            ChatList(homeScreenPresenter)
+            ChatList(homeScreenPresenter, searchText)
         }
 
         FloatingActionButton(
@@ -191,15 +194,11 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
 }
 
 @Composable
-fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
+fun ChatList(homeScreenPresenter: HomeScreenPresenter, searchText: String) {
     var homeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
     var tempHomeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
     var chatsData by remember { mutableStateOf(homeData.keys.toList()) }
     val context = LocalContext.current
-
-    LaunchedEffect(homeScreenPresenter){
-        homeScreenPresenter.getMyKey()
-    }
 
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
@@ -211,11 +210,12 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
             }
             homeData = newData
             homeScreenPresenter.setMessageList(homeData)
-            chatsData = homeData.keys.toList()
         }
     }
-
     if(homeData.isNotEmpty()){
+        chatsData = homeData.keys.toList().filter { contact ->
+            contact.contains(searchText, ignoreCase = true)
+        }
         LazyColumn(
             modifier = Modifier.padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.Start,

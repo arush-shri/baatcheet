@@ -190,13 +190,10 @@ class FileHandler (private val context: Context){
             val fileWriter = FileWriter(file, false)
             fileWriter.write(jsonData)
             fileWriter.close()
-            Log.d("qwertyFW0", contactList)
         }
         else{
-            Log.d("qwertyFW1", contactList)
             return
         }
-        Log.d("qwertyFW2", contactList)
     }
 
     suspend fun getGroupContacts(name: String, connection: DatabaseHandler): List<GroupDetailsModel>{
