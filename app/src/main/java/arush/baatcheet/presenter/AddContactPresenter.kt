@@ -2,13 +2,11 @@ package arush.baatcheet.presenter
 
 import android.content.ContentResolver
 import android.content.Context
-import android.util.Log
 import arush.baatcheet.model.AddContactModel
 import arush.baatcheet.model.ContactItem
 import arush.baatcheet.model.DatabaseHandler
 import arush.baatcheet.model.FileHandler
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 
 class AddContactPresenter {
 

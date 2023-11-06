@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -70,7 +69,6 @@ class LoginActivity : AppCompatActivity() {
                 else {
                     loginPresenter.login(loginBinding.nameInput.text.toString(),
                         "+91${loginBinding.numberInput.text.toString()}", imageUri)
-                    Log.d("qwertyLog1", imageUri.toString())
                     FileHandler(applicationContext).storeDP(imageUri)
                     loginBinding.otpLayout.isVisible = true
                     loginBinding.getOTPButton.text = "VERIFY"

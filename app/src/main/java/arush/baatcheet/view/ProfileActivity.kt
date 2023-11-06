@@ -2,7 +2,6 @@ package arush.baatcheet.view
 
 import android.content.Intent
 import android.os.Bundle
-import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -50,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arush.baatcheet.R
 import arush.baatcheet.presenter.HomeScreenPresenter
-import arush.baatcheet.presenter.ProfileSectionPresenter
 import arush.baatcheet.view.ui.theme.BaatcheetTheme
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter

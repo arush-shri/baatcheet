@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.provider.ContactsContract
 import android.telephony.SmsManager
-import android.util.Log
 import android.widget.Toast
 
 class AddContactModel {

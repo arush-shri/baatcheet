@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
-import android.util.Log
 import arush.baatcheet.model.AddContactModel
 import arush.baatcheet.model.Cryptography
 import arush.baatcheet.model.DatabaseHandler
@@ -13,7 +12,6 @@ import arush.baatcheet.model.GroupDetailsModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collect
 import java.security.PublicKey
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

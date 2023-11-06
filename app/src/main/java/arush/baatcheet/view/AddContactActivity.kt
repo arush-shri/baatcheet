@@ -3,7 +3,6 @@ package arush.baatcheet.view
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -238,7 +237,6 @@ fun AddContact(myNum: String, finishActivity: ()->Unit) {
                                 Toast.makeText(context, "The group name should have a minimum length of 3.", Toast.LENGTH_SHORT).show()
                             }
                             else {
-                                Log.d("qwertyS", contactSelectionList.toString())
                                 GlobalScope.launch {
                                     addContactPresenter.createGroup(contactSelectionList, groupNameText, context, myNum, true)
                                 }
