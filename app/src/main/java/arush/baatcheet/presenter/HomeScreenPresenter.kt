@@ -50,15 +50,13 @@ class HomeScreenPresenter(private val context : Context) {
         }
     }
     suspend fun sendMessage(username: String, message:String, isGroup: Boolean){
-        Log.d("qwertyS1", username)
+
         while (!isGroup && (!(this::publicKey.isInitialized) || !(this::myPublicKey.isInitialized))) {
-            Log.d("qwertyS21", message)
             delay(1000)
         }
         val timeStamp = getCombinedTimestamp()
         if(isGroup){
             while (groupDetails.isNullOrEmpty() || !(this::myPublicKey.isInitialized)){
-                Log.d("qwertyS22", groupDetails.toString() + myPublicKey.toString())
                 delay(1000)
             }
             for(contact in groupDetails!!){
@@ -151,7 +149,6 @@ class HomeScreenPresenter(private val context : Context) {
 
     suspend fun getGroupDetails(username: String){
         groupDetails = fileHandler.getGroupContacts(username, connection)
-        Log.d("qwertyGD", groupDetails.toString())
     }
     fun grpDetInit(name: String): Boolean{
         return fileHandler.fileExist(name)

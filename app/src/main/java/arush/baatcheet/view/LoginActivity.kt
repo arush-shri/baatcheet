@@ -86,6 +86,8 @@ class LoginActivity : AppCompatActivity() {
                 }
                 else{
                     loginPresenter.verifier(loginBinding.otpInput.text.toString())
+                    loginBinding.getOTPButton.isEnabled = false
+                    loginBinding.progressBar.isVisible = true
                 }
             }
         }

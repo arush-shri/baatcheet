@@ -125,14 +125,13 @@ fun ChatScreen(
     var prevDate by remember{ mutableIntStateOf(0) }
 
 
-    LaunchedEffect(true) {
+    LaunchedEffect(presenter) {
         if (isGroup){
             presenter.getGroupDetails(number)
             recMsg = presenter.grpDetInit(number)
         } else {
             presenter.getPublicKey(number)
         }
-        presenter.getMyKey()
         if(!recMsg){
             presenter.getNewGroup(number).collect{
                 val list = it[0]["message"].toString().split(' ').toMutableSet()
@@ -142,6 +141,8 @@ fun ChatScreen(
                 presenter.getGroupDetails(number)
             }
         }
+    }
+    LaunchedEffect(true){
         presenter.receiveMessage(number).collect {
             if (it) {
                 messageList = presenter.retrieveMessage(number)
@@ -247,7 +248,6 @@ fun ChatScreen(
                 ) {
                     ChatInputField{
                         GlobalScope.launch {
-                            Log.d("qwertyS", "$number $isGroup")
                             presenter.sendMessage(number, presenter.myNum+it, isGroup)
                             messageList = presenter.retrieveMessage(number)
                             coroutineScope.launch {

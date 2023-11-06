@@ -184,6 +184,7 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
                 .clickable {
                     val intent = Intent(context, ProfileActivity::class.java)
                     context.startActivity(intent)
+                    /*TODO*/
                 }
         )
     }
@@ -192,17 +193,26 @@ fun AppBar(homeScreenPresenter: HomeScreenPresenter, onSearchIconClick: () -> Un
 @Composable
 fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
     var homeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
-    var tempHomeData by remember { mutableStateOf(homeData) }
+    var tempHomeData by remember { mutableStateOf(homeScreenPresenter.getMessageListFile()) }
     var chatsData by remember { mutableStateOf(homeData.keys.toList()) }
     val context = LocalContext.current
+
+    LaunchedEffect(homeScreenPresenter){
+        homeScreenPresenter.getMyKey()
+    }
+
     LaunchedEffect(homeScreenPresenter) {
         homeScreenPresenter.getMessageList().collect{
-            tempHomeData = homeData
-            homeData = it+homeData
+            val newData = it.toMutableMap()
+            for (item in homeData) {
+                if (item.key !in newData) {
+                    newData[item.key] = item.value
+                }
+            }
+            homeData = newData
             homeScreenPresenter.setMessageList(homeData)
             chatsData = homeData.keys.toList()
         }
-//        list aane k baad indi file me store ka fun chala        remove vala bhi individual me
     }
 
     if(homeData.isNotEmpty()){
@@ -217,8 +227,7 @@ fun ChatList(homeScreenPresenter: HomeScreenPresenter) {
                     ) {
                         if(chat in tempHomeData){
                             ChatListItem(
-                                chat, it, homeScreenPresenter,
-                                it.size - tempHomeData[chat]?.get("messages")?.size!!, context
+                                chat, it, homeScreenPresenter, it.size, context
                             )
                         }
                         else {
@@ -251,7 +260,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
     var image by remember { mutableStateOf<Painter?>(null) }
     var imageLink by remember { mutableStateOf("") }
     var msgCount by remember { mutableIntStateOf(msgChange) }
-    var contactDisplay : String = if(contact.length > 13) {
+    var contactDisplay : String = if(contact.length > 15) {
         contact.substring(20)
     }
     else if(homeScreenPresenter.myNum == contact){
@@ -261,7 +270,6 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
         if(name.isNullOrEmpty()) contact
         else name
     }
-
     LaunchedEffect(homeScreenPresenter ){
         homeScreenPresenter.getDPLink(contact).collect{
             imageLink = it
@@ -305,8 +313,13 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
             )
             if (messages.isNotEmpty()){
                 messages.last()["message"]?.let {
+                    var lastMsg = homeScreenPresenter.getDecrypted(it.toString())
                     Text(
-                        text = homeScreenPresenter.getDecrypted(it.toString()).substring(13),
+                        text = if (lastMsg == "Error with decryption key"){""}
+                        else
+                        {
+                            lastMsg.substring(13)
+                        },
                         color = if(isSystemInDarkTheme()){
                             LightGray
                         }else{
@@ -319,6 +332,7 @@ fun ChatListItem(contact: String, messages: ArrayList<HashMap<String, Any>>,
             }
         }
         Spacer(modifier = Modifier.weight(1f))
+        msgCount = msgChange
         CustomBadge(msgCount)
     }
 }

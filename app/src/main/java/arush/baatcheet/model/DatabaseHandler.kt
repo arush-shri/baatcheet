@@ -117,7 +117,6 @@ class DatabaseHandler {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val data = snapshot.value as Map<String, Map<String, ArrayList<HashMap<String, Any>>>>
-//                    Log.d("qwertyD", data.toString())
                     trySend(data).isSuccess
                 } else {
                     trySend(emptyMap()).isSuccess

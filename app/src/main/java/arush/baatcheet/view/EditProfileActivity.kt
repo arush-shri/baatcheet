@@ -79,9 +79,7 @@ class EditProfileActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    EditProfile(filePresenter, phoneNum, name){
-                        changeDP()
-                    }
+                    EditProfile(filePresenter, phoneNum, name, { changeDP() },{finish()})
                 }
             }
         }
@@ -105,7 +103,8 @@ class EditProfileActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfile(filePresenter: HomeScreenPresenter, phoneNum:String, name:String, callback: ()->(Unit)) {
+fun EditProfile(filePresenter: HomeScreenPresenter, phoneNum:String, name:String,
+                callback: ()->(Unit), goBack: ()->Unit) {
     var name by remember { mutableStateOf(name) }
     var number by remember { mutableStateOf(phoneNum) }
     var editable by remember { mutableStateOf(true) }
@@ -188,9 +187,11 @@ fun EditProfile(filePresenter: HomeScreenPresenter, phoneNum:String, name:String
             
             Spacer(modifier = Modifier.height(36.dp))
 
-            ElevatedButton(onClick = {
-                editable = false
-                filePresenter.editProfile(name,number, imageEdit) },
+            Button(
+                onClick = {
+                    editable = false
+                    filePresenter.editProfile(name,number, imageEdit)
+                },
                 modifier = Modifier
                     .border(2.dp, Color(0xFF808080),
                         shape = RoundedCornerShape(8.dp)),
@@ -198,13 +199,17 @@ fun EditProfile(filePresenter: HomeScreenPresenter, phoneNum:String, name:String
                     containerColor = Color.Transparent,
                     contentColor = Color(0xFF311B92)
                 ),
-                shape = RoundedCornerShape(8.dp)) {
-                Text(text = "SAVE CHANGES",
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "SAVE CHANGES",
                     color = MaterialTheme.colorScheme.tertiary,
-                    fontFamily = FontFamily(Font((R.font.lexend_medium))),
-                    fontSize = 18.sp
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.lexend_regular))
                 )
             }
+
         }
     }
 }
